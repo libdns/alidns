@@ -18,7 +18,7 @@ type Provider struct {
 func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
 	var rls []libdns.Record
 	for _, rec := range recs {
-		ar := alidnsRecord(rec)
+		ar := alidnsRecordTrimZone(rec, zone)
 		ar.DName = zone
 		rid, err := p.addDomainRecord(ctx, ar)
 		if err != nil {
@@ -35,7 +35,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 func (p *Provider) DeleteRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
 	var rls []libdns.Record
 	for _, rec := range recs {
-		ar := alidnsRecord(rec)
+		ar := alidnsRecordTrimZone(rec, zone)
 		if len(ar.RecID) == 0 {
 			r0, err := p.queryDomainRecord(ctx, ar.Rr, zone)
 			ar.RecID = r0.RecID
@@ -70,7 +70,7 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
 	var rls []libdns.Record
 	for _, rec := range recs {
-		ar := alidnsRecord(rec)
+		ar := alidnsRecordTrimZone(rec, zone)
 		if len(ar.RecID) == 0 {
 			r0, err := p.queryDomainRecord(ctx, ar.Rr, zone)
 			if err != nil {

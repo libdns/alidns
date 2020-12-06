@@ -1,6 +1,7 @@
 package alidns
 
 import (
+	"strings"
 	"time"
 
 	"github.com/libdns/libdns"
@@ -83,6 +84,21 @@ func (r *aliResult) ToDomaRecord() aliDomaRecord {
 
 // AlidnsRecord convert libdns.Record to aliDomaRecord
 func alidnsRecord(r libdns.Record) aliDomaRecord {
+	return aliDomaRecord{
+		Rr:    r.Name,
+		DTyp:  r.Type,
+		DVal:  r.Value,
+		RecID: r.ID,
+		TTL:   int(r.TTL.Seconds()),
+	}
+}
+
+// AlidnsRecord convert libdns.Record to aliDomaRecord
+func alidnsRecordTrimZone(r libdns.Record, zone string) aliDomaRecord {
+	zone = strings.Trim(zone, ".")
+	if strings.Contains(r.Name, zone) {
+		r.Name = strings.Trim(r.Name, "."+zone)
+	}
 	return aliDomaRecord{
 		Rr:    r.Name,
 		DTyp:  r.Type,
