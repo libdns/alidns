@@ -56,12 +56,15 @@ func newCredInfo(pAccKeyID, pAccKeySecret, pRegionID string) *CredInfo {
 	}
 }
 
-func (c *Client) getAliClient(cred *CredInfo) error {
+func (c *Client) getAliClient(cred *CredInfo, zone string) error {
 	cl0, err := c.AClient.getAliClientSche(cred, "https")
 	if err != nil {
 		return err
 	}
 	c.AClient = cl0
+	if zone != "" {
+		c.getDomainInfo(context.Background(), zone)
+	}
 	return nil
 }
 

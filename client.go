@@ -17,14 +17,18 @@ type Client struct {
 }
 
 func (p *Provider) getClient() error {
+	return p.getClientWithZone("")
+}
+
+func (p *Provider) getClientWithZone(zone string) error {
 	cred := newCredInfo(p.AccKeyID, p.AccKeySecret, p.RegionID)
-	return p.client.getAliClient(cred)
+	return p.client.getAliClient(cred, zone)
 }
 
 func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
-	p.getClient()
+	p.getClientWithZone(rc.DName)
 	p.client.AClient.addReqBody("Action", "AddDomainRecord")
 	p.client.AClient.addReqBody("DomainName", rc.DName)
 	p.client.AClient.addReqBody("RR", rc.Rr)
@@ -58,7 +62,7 @@ func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
-	p.getClient()
+	p.getClientWithZone(rc.DName)
 	p.client.AClient.addReqBody("Action", "UpdateDomainRecord")
 	p.client.AClient.addReqBody("RecordId", rc.RecID)
 	p.client.AClient.addReqBody("RR", rc.Rr)
@@ -117,12 +121,12 @@ func (p *Provider) queryDomainRecord(ctx context.Context, rr string, name string
 		return aliDomaRecord{}, err
 	}
 	if len(rs.DRecords.Record) == 0 {
-		return aliDomaRecord{}, errors.New("the rr of the domain not found")
+		return aliDomaRecord{}, errors.New("the Record Name of the domain not found")
 	}
 	return rs.DRecords.Record[0], err
 }
 
-//queryMainDomain rseserved for absolute names to name,zone
+// REVERSED:queryMainDomain rseserved for absolute names to name,zone
 func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, string, error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
@@ -138,7 +142,16 @@ func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, st
 }
 
 func (p *Provider) doAPIRequest(ctx context.Context, result interface{}) error {
-	req, err := p.client.applyReq(ctx, "GET", nil)
+	return p.client.doAPIRequest(ctx, "GET", &result)
+}
+
+// TODO:Will complete,If we need to get Domain Info for something.
+func (c *Client) getDomainInfo(ctx context.Context, zone string) error {
+	return nil
+}
+
+func (c *Client) doAPIRequest(ctx context.Context, method string, result interface{}) error {
+	req, err := c.applyReq(ctx, method, nil)
 	if err != nil {
 		return err
 	}
@@ -163,6 +176,6 @@ func (p *Provider) doAPIRequest(ctx context.Context, result interface{}) error {
 	if rsp.StatusCode != 200 {
 		return fmt.Errorf("get error status: HTTP %d: %+v", rsp.StatusCode, result.(*aliResult).Msg)
 	}
-	p.client.AClient = nil
+	c.AClient = nil
 	return err
 }

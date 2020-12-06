@@ -53,6 +53,7 @@ type aliResult struct {
 	Status     string         `json:"Status,omitempty"`
 	Locked     bool           `json:"Locked,omitempty"`
 	Weight     int            `json:"Weight,omitempty"`
+	MinTTL     int            `json:"MinTtl,omitempty"`
 }
 
 func (r *aliDomaRecord) LibdnsRecord() libdns.Record {
