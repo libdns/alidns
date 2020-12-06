@@ -63,7 +63,7 @@ func (c *Client) getAliClient(cred *CredInfo, zone string) error {
 	}
 	c.AClient = cl0
 	if zone != "" {
-		c.getDomainInfo(context.Background(), zone)
+		c.getDomainInfo(context.Background(), strings.Trim(zone, "."))
 	}
 	return nil
 }

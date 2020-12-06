@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -28,7 +29,11 @@ func (p *Provider) getClientWithZone(zone string) error {
 func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
+	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClientWithZone(rc.DName)
+	if rc.TTL <= 0 {
+		rc.TTL = 600
+	}
 	p.client.AClient.addReqBody("Action", "AddDomainRecord")
 	p.client.AClient.addReqBody("DomainName", rc.DName)
 	p.client.AClient.addReqBody("RR", rc.Rr)
@@ -47,6 +52,7 @@ func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
+	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClient()
 	p.client.AClient.addReqBody("Action", "DeleteDomainRecord")
 	p.client.AClient.addReqBody("RecordId", rc.RecID)
@@ -62,6 +68,7 @@ func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
+	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClientWithZone(rc.DName)
 	p.client.AClient.addReqBody("Action", "UpdateDomainRecord")
 	p.client.AClient.addReqBody("RecordId", rc.RecID)
@@ -98,7 +105,7 @@ func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDo
 	defer p.client.mutex.Unlock()
 	p.getClient()
 	p.client.AClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.AClient.addReqBody("DomainName", name)
+	p.client.AClient.addReqBody("DomainName", strings.Trim(name, "."))
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -112,7 +119,7 @@ func (p *Provider) queryDomainRecord(ctx context.Context, rr string, name string
 	defer p.client.mutex.Unlock()
 	p.getClient()
 	p.client.AClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.AClient.addReqBody("DomainName", name)
+	p.client.AClient.addReqBody("DomainName", strings.Trim(name, "."))
 	p.client.AClient.addReqBody("KeyWord", rr)
 	p.client.AClient.addReqBody("SearchMode", "EXACT")
 	rs := aliResult{}
@@ -132,7 +139,7 @@ func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, st
 	defer p.client.mutex.Unlock()
 	p.getClient()
 	p.client.AClient.addReqBody("Action", "GetMainDomainName")
-	p.client.AClient.addReqBody("InputString", name)
+	p.client.AClient.addReqBody("InputString", strings.Trim(name, "."))
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -142,7 +149,7 @@ func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, st
 }
 
 func (p *Provider) doAPIRequest(ctx context.Context, result interface{}) error {
-	return p.client.doAPIRequest(ctx, "GET", &result)
+	return p.client.doAPIRequest(ctx, "GET", result)
 }
 
 // TODO:Will complete,If we need to get Domain Info for something.
