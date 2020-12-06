@@ -116,9 +116,9 @@ func (c *AliClient) signReq(method string) error {
 	}
 	sort.Sort(byKey(c.reqMap))
 	str := c.reqMapToStr()
-	//fmt.Println(dbgTAG+"req to str:", str)
+	fmt.Println(dbgTAG+"Request map to str:", str)
 	str = c.reqStrToSign(str, method)
-	//fmt.Println(dbgTAG+"url to sign:", str)
+	fmt.Println(dbgTAG+"URL to sign:", str)
 	c.sigStr = signStr(str, c.sigPwd)
 	return nil
 }
