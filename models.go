@@ -93,13 +93,14 @@ func alidnsRecord(r libdns.Record) aliDomaRecord {
 	}
 }
 
-// AlidnsRecord convert libdns.Record to aliDomaRecord
-func alidnsRecordTrimZone(r libdns.Record, zone string) aliDomaRecord {
+// AlidnsRecord convert libdns.Record with zone to aliDomaRecord
+func alidnsRecordWithZone(r libdns.Record, zone string) aliDomaRecord {
 	zone = strings.Trim(zone, ".")
 	if strings.Contains(r.Name, zone) {
 		r.Name = strings.TrimRight(r.Name, "."+zone)
 	}
 	return aliDomaRecord{
+		DName: zone,
 		Rr:    r.Name,
 		DTyp:  r.Type,
 		DVal:  r.Value,
