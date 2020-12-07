@@ -8,7 +8,7 @@ import (
 
 // Provider implements the libdns interfaces for Alicloud.
 type Provider struct {
-	client       Client
+	client       mClient
 	AccKeyID     string `json:"access_key_id"`
 	AccKeySecret string `json:"access_key_secret"`
 	RegionID     string `json:"region_id,omitempty"`

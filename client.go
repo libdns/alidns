@@ -11,9 +11,9 @@ import (
 	"sync"
 )
 
-// Client is an abstration of AliClient
-type Client struct {
-	AClient *AliClient
+// mClient is an abstration of AliClient
+type mClient struct {
+	aClient *aliClient
 	mutex   sync.Mutex
 }
 
@@ -29,17 +29,16 @@ func (p *Provider) getClientWithZone(zone string) error {
 func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
-	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClientWithZone(rc.DName)
 	if rc.TTL <= 0 {
 		rc.TTL = 600
 	}
-	p.client.AClient.addReqBody("Action", "AddDomainRecord")
-	p.client.AClient.addReqBody("DomainName", rc.DName)
-	p.client.AClient.addReqBody("RR", rc.Rr)
-	p.client.AClient.addReqBody("Type", rc.DTyp)
-	p.client.AClient.addReqBody("Value", rc.DVal)
-	p.client.AClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	p.client.aClient.addReqBody("Action", "AddDomainRecord")
+	p.client.aClient.addReqBody("DomainName", rc.DName)
+	p.client.aClient.addReqBody("RR", rc.Rr)
+	p.client.aClient.addReqBody("Type", rc.DTyp)
+	p.client.aClient.addReqBody("Value", rc.DVal)
+	p.client.aClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
 	rs := aliResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -52,10 +51,9 @@ func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
-	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClient()
-	p.client.AClient.addReqBody("Action", "DeleteDomainRecord")
-	p.client.AClient.addReqBody("RecordId", rc.RecID)
+	p.client.aClient.addReqBody("Action", "DeleteDomainRecord")
+	p.client.aClient.addReqBody("RecordId", rc.RecID)
 	rs := aliResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -68,14 +66,13 @@ func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
-	rc.DName = strings.Trim(rc.DName, ".")
 	p.getClientWithZone(rc.DName)
-	p.client.AClient.addReqBody("Action", "UpdateDomainRecord")
-	p.client.AClient.addReqBody("RecordId", rc.RecID)
-	p.client.AClient.addReqBody("RR", rc.Rr)
-	p.client.AClient.addReqBody("Type", rc.DTyp)
-	p.client.AClient.addReqBody("Value", rc.DVal)
-	p.client.AClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	p.client.aClient.addReqBody("Action", "UpdateDomainRecord")
+	p.client.aClient.addReqBody("RecordId", rc.RecID)
+	p.client.aClient.addReqBody("RR", rc.Rr)
+	p.client.aClient.addReqBody("Type", rc.DTyp)
+	p.client.aClient.addReqBody("Value", rc.DVal)
+	p.client.aClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
 	rs := aliResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -89,8 +86,8 @@ func (p *Provider) getDomainRecord(ctx context.Context, recID string) (aliDomaRe
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
-	p.client.AClient.addReqBody("Action", "DescribeDomainRecordInfo")
-	p.client.AClient.addReqBody("RecordId", recID)
+	p.client.aClient.addReqBody("Action", "DescribeDomainRecordInfo")
+	p.client.aClient.addReqBody("RecordId", recID)
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	rec := rs.ToDomaRecord()
@@ -104,8 +101,8 @@ func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDo
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
-	p.client.AClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.AClient.addReqBody("DomainName", strings.Trim(name, "."))
+	p.client.aClient.addReqBody("Action", "DescribeDomainRecords")
+	p.client.aClient.addReqBody("DomainName", strings.Trim(name, "."))
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -118,10 +115,10 @@ func (p *Provider) queryDomainRecord(ctx context.Context, rr string, name string
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
-	p.client.AClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.AClient.addReqBody("DomainName", strings.Trim(name, "."))
-	p.client.AClient.addReqBody("KeyWord", rr)
-	p.client.AClient.addReqBody("SearchMode", "EXACT")
+	p.client.aClient.addReqBody("Action", "DescribeDomainRecords")
+	p.client.aClient.addReqBody("DomainName", strings.Trim(name, "."))
+	p.client.aClient.addReqBody("KeyWord", rr)
+	p.client.aClient.addReqBody("SearchMode", "EXACT")
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -138,8 +135,8 @@ func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, st
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
-	p.client.AClient.addReqBody("Action", "GetMainDomainName")
-	p.client.AClient.addReqBody("InputString", strings.Trim(name, "."))
+	p.client.aClient.addReqBody("Action", "GetMainDomainName")
+	p.client.aClient.addReqBody("InputString", strings.Trim(name, "."))
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -153,11 +150,11 @@ func (p *Provider) doAPIRequest(ctx context.Context, result interface{}) error {
 }
 
 // TODO:Will complete,If we need to get Domain Info for something.
-func (c *Client) getDomainInfo(ctx context.Context, zone string) error {
+func (c *mClient) getDomainInfo(ctx context.Context, zone string) error {
 	return nil
 }
 
-func (c *Client) doAPIRequest(ctx context.Context, method string, result interface{}) error {
+func (c *mClient) doAPIRequest(ctx context.Context, method string, result interface{}) error {
 	req, err := c.applyReq(ctx, method, nil)
 	if err != nil {
 		return err
@@ -183,6 +180,6 @@ func (c *Client) doAPIRequest(ctx context.Context, method string, result interfa
 	if rsp.StatusCode != 200 {
 		return fmt.Errorf("get error status: HTTP %d: %+v", rsp.StatusCode, result.(*aliResult).Msg)
 	}
-	c.AClient = nil
+	c.aClient = nil
 	return err
 }

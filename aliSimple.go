@@ -28,16 +28,16 @@ type CredInfo struct {
 }
 
 // AliClient abstructs the alidns.Client
-type AliClient struct {
+type aliClient struct {
 	mutex   sync.Mutex
 	APIHost string
-	reqMap  []VKey
+	reqMap  []vKey
 	sigStr  string
 	sigPwd  string
 }
 
 // VKey implments of K-V struct
-type VKey struct {
+type vKey struct {
 	key string
 	val string
 }
@@ -56,23 +56,23 @@ func newCredInfo(pAccKeyID, pAccKeySecret, pRegionID string) *CredInfo {
 	}
 }
 
-func (c *Client) getAliClient(cred *CredInfo, zone string) error {
-	cl0, err := c.AClient.getAliClientSche(cred, "https")
+func (c *mClient) getAliClient(cred *CredInfo, zone string) error {
+	cl0, err := c.aClient.getAliClientSche(cred, "https")
 	if err != nil {
 		return err
 	}
-	c.AClient = cl0
+	c.aClient = cl0
 	if zone != "" {
 		c.getDomainInfo(context.Background(), strings.Trim(zone, "."))
 	}
 	return nil
 }
 
-func (c *Client) applyReq(cxt context.Context, method string, body io.Reader) (*http.Request, error) {
+func (c *mClient) applyReq(cxt context.Context, method string, body io.Reader) (*http.Request, error) {
 	if method == "" {
 		method = "GET"
 	}
-	c0 := c.AClient
+	c0 := c.aClient
 	c0.signReq(method)
 	si0 := fmt.Sprintf("%s=%s", "Signature", c0.sigStr)
 	mURL := fmt.Sprintf("%s?%s&%s", c0.APIHost, c0.reqMapToStr(), si0)
@@ -84,17 +84,17 @@ func (c *Client) applyReq(cxt context.Context, method string, body io.Reader) (*
 	return req, nil
 }
 
-func (c *AliClient) getAliClientSche(cred *CredInfo, scheme string) (*AliClient, error) {
+func (c *aliClient) getAliClientSche(cred *CredInfo, scheme string) (*aliClient, error) {
 	if cred == nil {
-		return &AliClient{}, errors.New("alicloud: credentials missing")
+		return &aliClient{}, errors.New("alicloud: credentials missing")
 	}
 	if scheme == "" {
 		scheme = "http"
 	}
 
-	cl0 := &AliClient{
+	cl0 := &aliClient{
 		APIHost: fmt.Sprintf(addrOfAPI, scheme),
-		reqMap: []VKey{
+		reqMap: []vKey{
 			{key: "AccessKeyId", val: cred.AccKeyID},
 			{key: "Format", val: "json"},
 			{key: "SignatureMethod", val: "HMAC-SHA1"},
@@ -110,7 +110,7 @@ func (c *AliClient) getAliClientSche(cred *CredInfo, scheme string) (*AliClient,
 	return cl0, nil
 }
 
-func (c *AliClient) signReq(method string) error {
+func (c *aliClient) signReq(method string) error {
 	if c.sigPwd == "" || len(c.reqMap) == 0 {
 		return errors.New("alicloud: AccessKeySecret or Request(includes AccessKeyId) is Misssing")
 	}
@@ -123,11 +123,11 @@ func (c *AliClient) signReq(method string) error {
 	return nil
 }
 
-func (c *AliClient) addReqBody(key string, value string) error {
+func (c *aliClient) addReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("Key or Value is Empty")
 	}
-	el := VKey{key: key, val: value}
+	el := vKey{key: key, val: value}
 	c.mutex.Lock()
 	for _, el0 := range c.reqMap {
 		if el.key == el0.key {
@@ -140,11 +140,11 @@ func (c *AliClient) addReqBody(key string, value string) error {
 	return nil
 }
 
-func (c *AliClient) setReqBody(key string, value string) error {
+func (c *aliClient) setReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("Key or Value is Empty")
 	}
-	el := VKey{key: key, val: value}
+	el := vKey{key: key, val: value}
 	c.mutex.Lock()
 	for in, el0 := range c.reqMap {
 		if el.key == el0.key {
@@ -157,7 +157,7 @@ func (c *AliClient) setReqBody(key string, value string) error {
 	return fmt.Errorf("Entry of %s not found", key)
 }
 
-func (c *AliClient) reqStrToSign(ins string, method string) string {
+func (c *aliClient) reqStrToSign(ins string, method string) string {
 	if method == "" {
 		method = "GET"
 	}
@@ -165,7 +165,7 @@ func (c *AliClient) reqStrToSign(ins string, method string) string {
 	return fmt.Sprintf("%s&%s&%s", method, "%2F", ecReq)
 }
 
-func (c *AliClient) reqMapToStr() string {
+func (c *aliClient) reqMapToStr() string {
 	m0 := c.reqMap
 	urlEn := url.Values{}
 	c.mutex.Lock()
@@ -195,7 +195,7 @@ func urlEncode(ins string) string {
 	return str0
 }
 
-type byKey []VKey
+type byKey []vKey
 
 func (v byKey) Len() int {
 	return len(v)

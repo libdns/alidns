@@ -7,12 +7,12 @@ import (
 
 func Test_ClientAPIReq(t *testing.T) {
 	p0.getClient()
-	p0.client.AClient.addReqBody("Action", "DescribeDomainRecords")
-	p0.client.AClient.addReqBody("KeyWords", "vi")
+	p0.client.aClient.addReqBody("Action", "DescribeDomainRecords")
+	p0.client.aClient.addReqBody("KeyWords", "vi")
 	var rs aliDomaRecords
 	rspData := aliResult{}
 	err := p0.doAPIRequest(context.TODO(), &rspData)
-	t.Log("req", p0.client.AClient, "data", rspData, "err:", err, "rs:", rs)
+	t.Log("req", p0.client.aClient, "data", rspData, "err:", err, "rs:", rs)
 }
 
 func Test_QueryDomainRecord(t *testing.T) {
