@@ -74,7 +74,7 @@ func (c *mClient) applyReq(cxt context.Context, method string, body io.Reader) (
 	}
 	c0 := c.aClient
 	c0.signReq(method)
-	si0 := fmt.Sprintf("%s=%s", "Signature", c0.sigStr)
+	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c0.sigStr, "+", "%2B"))
 	mURL := fmt.Sprintf("%s?%s&%s", c0.APIHost, c0.reqMapToStr(), si0)
 	req, err := http.NewRequestWithContext(cxt, method, mURL, body)
 	req.Header.Set("Accept", "application/json")
