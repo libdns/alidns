@@ -1,9 +1,9 @@
 package alidns
 
 import (
+	"fmt"
 	"strings"
 	"time"
-	"fmt"
 
 	"github.com/libdns/libdns"
 )
@@ -96,20 +96,18 @@ func alidnsRecord(r libdns.Record) aliDomaRecord {
 
 // AlidnsRecord convert libdns.Record with zone to aliDomaRecord
 func alidnsRecordWithZone(r libdns.Record, zone string) aliDomaRecord {
-	fmt.Printf("--> alidnsRecordWithZone:\n");
-	fmt.Printf("       zone   : %s\n", zone);
-	fmt.Printf("       r.Name : %s\n", r.Name);
-	fmt.Printf("       r.Type : %s\n", r.Type);
-	fmt.Printf("       r.Value: %s\n", r.Value);
+	fmt.Printf("--> alidnsRecordWithZone:\n")
+	fmt.Printf("       zone   : %s\n", zone)
+	fmt.Printf("       r.Name : %s\n", r.Name)
 
 	zone = strings.Trim(zone, ".")
 	if strings.Contains(r.Name, zone) {
 		r.Name = strings.TrimSuffix(r.Name, "."+zone)
 	}
 
-	fmt.Printf("    ...\n");
-	fmt.Printf("       zone  : %s\n", zone);
-	fmt.Printf("       r.Name: %s\n", r.Name);
+	fmt.Printf("    ...\n")
+	fmt.Printf("       zone  : %s\n", zone)
+	fmt.Printf("       r.Name: %s\n", r.Name)
 
 	return aliDomaRecord{
 		DName: zone,
