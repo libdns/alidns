@@ -19,7 +19,6 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 	var rls []libdns.Record
 	for _, rec := range recs {
 		ar := alidnsRecordWithZone(rec, zone)
-		ar.DName = zone
 		rid, err := p.addDomainRecord(ctx, ar)
 		if err != nil {
 			return nil, err
