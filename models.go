@@ -97,7 +97,7 @@ func alidnsRecord(r libdns.Record) aliDomaRecord {
 func alidnsRecordWithZone(r libdns.Record, zone string) aliDomaRecord {
 	zone = strings.Trim(zone, ".")
 	if strings.Contains(r.Name, zone) {
-		r.Name = strings.TrimRight(r.Name, "."+zone)
+		r.Name = strings.TrimSuffix(r.Name, "."+zone)
 	}
 	return aliDomaRecord{
 		DName: zone,
