@@ -1,6 +1,8 @@
-# AliDNS for `libdns`
+AliDNS for [`libdns`](https://github.com/libdns/libdns)
+=======================
+[![Go Reference](https://pkg.go.dev/badge/test.svg)](https://pkg.go.dev/github.com/libdns/alidns)
 
-This package implements the libdns interfaces for the [AliDNS API](https://help.aliyun.com/knowledge_detail/39863.html) (which has a nice Go SDK implementation [here](https://github.com/aliyun/alibaba-cloud-sdk-go))
+This package implements the [libdns interfaces](https://github.com/libdns/libdns), allowing you to manage DNS records with the [AliDNS API](https://help.aliyun.com/knowledge_detail/39863.html) ( which has a nice Go SDK implementation [here](https://github.com/aliyun/alibaba-cloud-sdk-go) )
 
 ## Authenticating
 
