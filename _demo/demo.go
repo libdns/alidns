@@ -14,15 +14,20 @@ import (
 func main() {
 	accKeyID := strings.TrimSpace(os.Getenv("ACCESS_KEY_ID"))
 	accKeySec := strings.TrimSpace(os.Getenv("ACCESS_KEY_SECRET"))
-	zone := strings.TrimSpace(os.Args[1])
 	if (accKeyID == "") || (accKeySec == "") {
 		fmt.Printf("ERROR: %s\n", "ACCESS_KEY_ID or ACCESS_KEY_SECRET missing")
 		return
+	}
+
+	zone := ""
+	if len(os.Args) > 1 {
+		zone = strings.TrimSpace(os.Args[1])
 	}
 	if zone == "" {
 		fmt.Printf("ERROR: %s\n", "First arg zone missing")
 		return
 	}
+
 	fmt.Printf("Get ACCESS_KEY_ID: %s,ACCESS_KEY_SECRET: %s,ZONE: %s\n", accKeyID, accKeySec, zone)
 	provider := al.Provider{
 		AccKeyID:     accKeyID,

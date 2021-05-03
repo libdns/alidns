@@ -125,14 +125,14 @@ func (c *aliClient) signReq(method string) error {
 
 func (c *aliClient) addReqBody(key string, value string) error {
 	if key == "" && value == "" {
-		return errors.New("Key or Value is Empty")
+		return errors.New("key or value is Empty")
 	}
 	el := vKey{key: key, val: value}
 	c.mutex.Lock()
 	for _, el0 := range c.reqMap {
 		if el.key == el0.key {
 			c.mutex.Unlock()
-			return errors.New("Duplicate Keys")
+			return errors.New("duplicate keys")
 		}
 	}
 	c.reqMap = append(c.reqMap, el)
@@ -142,7 +142,7 @@ func (c *aliClient) addReqBody(key string, value string) error {
 
 func (c *aliClient) setReqBody(key string, value string) error {
 	if key == "" && value == "" {
-		return errors.New("Key or Value is Empty")
+		return errors.New("key or value is Empty")
 	}
 	el := vKey{key: key, val: value}
 	c.mutex.Lock()
@@ -154,7 +154,7 @@ func (c *aliClient) setReqBody(key string, value string) error {
 		}
 	}
 	c.mutex.Unlock()
-	return fmt.Errorf("Entry of %s not found", key)
+	return fmt.Errorf("entry of %s not found", key)
 }
 
 func (c *aliClient) reqStrToSign(ins string, method string) string {
@@ -169,10 +169,8 @@ func (c *aliClient) reqMapToStr() string {
 	m0 := c.reqMap
 	urlEn := url.Values{}
 	c.mutex.Lock()
-	if m0 != nil {
-		for _, o := range m0 {
-			urlEn.Add(o.key, o.val)
-		}
+	for _, o := range m0 {
+		urlEn.Add(o.key, o.val)
 	}
 	c.mutex.Unlock()
 	return urlEn.Encode()

@@ -77,6 +77,9 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 			} else {
 				ar.RecID = r0.RecID
 			}
+			if err != nil {
+				return nil, err
+			}
 		}
 		_, err := p.setDomainRecord(ctx, ar)
 		if err != nil {
