@@ -9,8 +9,11 @@ import (
 // Provider implements the libdns interfaces for Alicloud.
 type Provider struct {
 	client       mClient
+	// The API Key ID Required by Aliyun's for accessing the Aliyun's API
 	AccKeyID     string `json:"access_key_id"`
+	// The API Key Secret Required by Aliyun's for accessing the Aliyun's API
 	AccKeySecret string `json:"access_key_secret"`
+	// Optional for identifing the region of the Aliyun's Service,The default is zh-hangzhou
 	RegionID     string `json:"region_id,omitempty"`
 }
 
