@@ -96,7 +96,7 @@ func (c *aliClient) getAliClientSche(cred *CredInfo, scheme string) (*aliClient,
 		APIHost: fmt.Sprintf(addrOfAPI, scheme),
 		reqMap: []vKey{
 			{key: "AccessKeyId", val: cred.AccKeyID},
-			{key: "Format", val: "json"},
+			{key: "Format", val: "JSON"},
 			{key: "SignatureMethod", val: "HMAC-SHA1"},
 			{key: "SignatureNonce", val: fmt.Sprintf("%d", time.Now().UnixNano())},
 			{key: "SignatureVersion", val: "1.0"},
@@ -189,7 +189,9 @@ func urlEncode(ins string) string {
 	str0 = strings.Replace(str0, "+", "%20", -1)
 	str0 = strings.Replace(str0, "*", "%2A", -1)
 	str0 = strings.Replace(str0, "%7E", "~", -1)
+
 	str0 = url.QueryEscape(str0)
+	str0 = strings.Replace(str0, "%26", "&", -1)
 	return str0
 }
 
