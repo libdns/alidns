@@ -16,9 +16,11 @@ func Test_ClientAPIReq(t *testing.T) {
 }
 
 func Test_QueryDomainRecord(t *testing.T) {
-	rr, name, _ := p0.queryMainDomain(context.Background(), "me.viscrop.top")
+	rr, name, _ := p0.queryMainDomain(context.Background(), "www.viscrop.top")
 	r0, err := p0.queryDomainRecord(context.TODO(), rr, name)
 	t.Log("result:", r0, "err:", err)
+	r0, err = p0.queryDomainRecord(context.TODO(), rr, name,"A")
+	t.Log("result with A rec:", r0, "err:", err)
 }
 
 func Test_QueryDomainRecords(t *testing.T) {

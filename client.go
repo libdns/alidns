@@ -111,14 +111,17 @@ func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDo
 	return rs.DRecords.Record, err
 }
 
-func (p *Provider) queryDomainRecord(ctx context.Context, rr string, name string) (aliDomaRecord, error) {
+func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recType ...string) (aliDomaRecord, error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
 	p.client.aClient.addReqBody("Action", "DescribeDomainRecords")
 	p.client.aClient.addReqBody("DomainName", strings.Trim(name, "."))
-	p.client.aClient.addReqBody("KeyWord", rr)
-	p.client.aClient.addReqBody("SearchMode", "EXACT")
+	p.client.aClient.addReqBody("RRKeyWord", rr)
+	if len(recType) > 0 {
+		p.client.aClient.addReqBody("TypeKeyWord", recType[0])
+	}
+	p.client.aClient.addReqBody("SearchMode", "ADVANCED")
 	rs := aliResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
