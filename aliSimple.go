@@ -8,9 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/url"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -184,6 +187,18 @@ func signStr(ins string, sec string) string {
 	return base64.StdEncoding.EncodeToString(sum)
 }
 
+func goVer() float64 {
+	verStr := runtime.Version()
+	verStr, _ = strings.CutPrefix(verStr, "go")
+	verStrs := strings.Split(verStr, ".")
+	var result float64
+	for i, v := range verStrs {
+		tmp, _ := strconv.ParseFloat(v, 32)
+		result = tmp * (1 / math.Pow10(i))
+	}
+	return result
+}
+
 func urlEncode(ins string) string {
 	str0 := ins
 	str0 = strings.Replace(str0, "+", "%20", -1)
@@ -191,7 +206,10 @@ func urlEncode(ins string) string {
 	str0 = strings.Replace(str0, "%7E", "~", -1)
 
 	str0 = url.QueryEscape(str0)
-	str0 = strings.Replace(str0, "%26", "&", -1)
+	if goVer() > 1.20 {
+		str0 = strings.Replace(str0, "%26", "&", -1)
+	}
+
 	return str0
 }
 
