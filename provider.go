@@ -8,13 +8,13 @@ import (
 
 // Provider implements the libdns interfaces for Alicloud.
 type Provider struct {
-	client       mClient
+	client mClient
 	// The API Key ID Required by Aliyun's for accessing the Aliyun's API
-	AccKeyID     string `json:"access_key_id"`
+	AccKeyID string `json:"access_key_id"`
 	// The API Key Secret Required by Aliyun's for accessing the Aliyun's API
 	AccKeySecret string `json:"access_key_secret"`
 	// Optional for identifing the region of the Aliyun's Service,The default is zh-hangzhou
-	RegionID     string `json:"region_id,omitempty"`
+	RegionID string `json:"region_id,omitempty"`
 }
 
 // AppendRecords adds records to the zone. It returns the records that were added.
@@ -39,7 +39,7 @@ func (p *Provider) DeleteRecords(ctx context.Context, zone string, recs []libdns
 	for _, rec := range recs {
 		ar := alidnsRecordWithZone(rec, zone)
 		if len(ar.RecID) == 0 {
-			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName)
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp)
 			ar.RecID = r0.RecID
 			if err != nil {
 				return nil, err
@@ -74,7 +74,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 	for _, rec := range recs {
 		ar := alidnsRecordWithZone(rec, zone)
 		if len(ar.RecID) == 0 {
-			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName)
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp)
 			if err != nil {
 				ar.RecID, err = p.addDomainRecord(ctx, ar)
 			} else {
