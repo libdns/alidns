@@ -1,32 +1,27 @@
 package alidns
 
 import (
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/libdns/libdns"
 )
 
-// aliRecList:the struct of query result
-type aliRecList struct {
-	ReqID      string         `json:"RequestId,omitempty"`
-	TotalCount int            `json:"TotalCount,omitempty"`
-	PgSize     int            `json:"PageSize,omitempty"`
-	DRecords   aliDomaRecords `json:"DomainRecords,omitempty"`
-	PgNum      int            `json:"PageNumber,omitempty"`
-}
+type ttl_t = uint32
 
 type aliDomaRecord struct {
-	Rr     string `json:"RR,omitempty"`
-	Line   string `json:"Line,omitempty"`
-	Status string `json:"Status,omitempty"`
-	Locked bool   `json:"Locked,omitempty"`
-	DTyp   string `json:"Type,omitempty"`
-	DName  string `json:"DomainName,omitempty"`
-	DVal   string `json:"Value,omitempty"`
-	RecID  string `json:"RecordId,omitempty"`
-	TTL    int    `json:"TTL,omitempty"`
-	Weight int    `json:"Weight,omitempty"`
+	Rr       string `json:"RR,omitempty"`
+	Line     string `json:"Line,omitempty"`
+	Status   string `json:"Status,omitempty"`
+	Locked   bool   `json:"Locked,omitempty"`
+	DTyp     string `json:"Type,omitempty"`
+	DName    string `json:"DomainName,omitempty"`
+	DVal     string `json:"Value,omitempty"`
+	RecID    string `json:"RecordId,omitempty"`
+	TTL      ttl_t  `json:"TTL,omitempty"`
+	Weight   int    `json:"Weight,omitempty"`
+	Priority ttl_t  `json:"Priority,omitempty"`
 }
 
 type aliDomaRecords struct {
@@ -38,7 +33,7 @@ type aliResult struct {
 	DRecords   aliDomaRecords `json:"DomainRecords,omitempty"`
 	DLvl       int            `json:"DomainLevel,omitempty"`
 	DVal       string         `json:"Value,omitempty"`
-	TTL        int            `json:"TTL,omitempty"`
+	TTL        ttl_t          `json:"TTL,omitempty"`
 	DName      string         `json:"DomainName,omitempty"`
 	Rr         string         `json:"RR,omitempty"`
 	Msg        string         `json:"Message,omitempty"`
@@ -55,6 +50,7 @@ type aliResult struct {
 	Locked     bool           `json:"Locked,omitempty"`
 	Weight     int            `json:"Weight,omitempty"`
 	MinTTL     int            `json:"MinTtl,omitempty"`
+	Priority   ttl_t          `json:"Priority,omitempty"`
 }
 
 func (r *aliDomaRecord) LibdnsRecord() libdns.Record {
@@ -84,13 +80,34 @@ func (r *aliResult) ToDomaRecord() aliDomaRecord {
 
 // AlidnsRecord convert libdns.Record to aliDomaRecord
 func alidnsRecord(r libdns.Record) aliDomaRecord {
-	return aliDomaRecord{
+	result := aliDomaRecord{
 		Rr:    r.Name,
 		DTyp:  r.Type,
 		DVal:  r.Value,
 		RecID: r.ID,
-		TTL:   int(r.TTL.Seconds()),
+		TTL:   ttl_t(r.TTL.Seconds()),
 	}
+
+	switch r.Type {
+	case "URI":
+		result.DTyp = "REDIRECT_URL"
+	case "MX":
+		result.Priority = ttl_t(r.Priority)
+	case "HTTPS":
+		tmp := make([]string, 0)
+		tmp = append(tmp, strconv.Itoa(int(r.Priority)))
+		tmp = append(tmp, r.Target)
+		tmp = append(tmp, r.Value)
+		result.DVal = strings.Join(tmp, " ")
+	case "SRV":
+		tmp := make([]string, 0)
+		tmp = append(tmp, strconv.Itoa(int(r.Priority)))
+		tmp = append(tmp, strconv.Itoa(int(r.Weight)))
+		tmp = append(tmp, r.Value)
+		result.DVal = strings.Join(tmp, " ")
+	default:
+	}
+	return result
 }
 
 // AlidnsRecord convert libdns.Record with zone to aliDomaRecord
