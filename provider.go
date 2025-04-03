@@ -78,7 +78,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 	for _, rec := range recs {
 		ar := alidnsRecordWithZone(rec, zone)
 		if ar.RecID == "" {
-			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp)
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp, ar.DVal)
 			if err != nil {
 				ar.RecID, err = p.addDomainRecord(ctx, ar)
 				if err != nil {
@@ -195,7 +195,7 @@ func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDo
 	return rs.DRecords.Record, err
 }
 
-func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recType string, recValue ...string) (aliDomaRecord, error) {
+func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recType string, recVal ...string) (aliDomaRecord, error) {
 	p.client.mutex.Lock()
 	defer p.client.mutex.Unlock()
 	p.getClient()
@@ -205,8 +205,8 @@ func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recTy
 	if recType != "" {
 		p.client.aClient.addReqBody("TypeKeyWord", recType)
 	}
-	if len(recValue) > 0 && recValue[0] != "" {
-		p.client.aClient.addReqBody("ValueKeyWord", recValue[0])
+	if len(recVal) > 0 && recVal[0] != "" {
+		p.client.aClient.addReqBody("ValueKeyWord", recVal[0])
 	}
 	p.client.aClient.addReqBody("SearchMode", "ADVANCED")
 	rs := aliResult{}
