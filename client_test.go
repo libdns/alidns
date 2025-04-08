@@ -3,6 +3,8 @@ package alidns
 import (
 	"context"
 	"testing"
+
+	"github.com/libdns/libdns"
 )
 
 func Test_ClientAPIReq(t *testing.T) {
@@ -17,9 +19,9 @@ func Test_ClientAPIReq(t *testing.T) {
 
 func Test_QueryDomainRecord(t *testing.T) {
 	rr, name, _ := p0.queryMainDomain(context.Background(), "www.viscrop.top")
-	r0, err := p0.queryDomainRecord(context.TODO(), rr, name)
+	r0, err := p0.queryDomainRecord(context.TODO(), rr, name, "A")
 	t.Log("result:", r0, "err:", err)
-	r0, err = p0.queryDomainRecord(context.TODO(), rr, name,"A")
+	r0, err = p0.queryDomainRecord(context.TODO(), rr, name, "A", ".")
 	t.Log("result with A rec:", r0, "err:", err)
 }
 
@@ -49,4 +51,82 @@ func Test_DomainRecordOp(t *testing.T) {
 	t.Log("result:", r0, "err:", err)
 	r0, err = p0.delDomainRecord(context.TODO(), dr0)
 	t.Log("result:", r0, "err:", err)
+}
+
+func Test_aliDomainRecordWithZone(t *testing.T) {
+	type testCase struct {
+		memo   string
+		record libdns.Record
+		zone   string
+		result aliDomaRecord
+	}
+
+	cases := []testCase{
+		{
+			memo: "record.Name without zone",
+			record: libdns.RR{
+				Name: "sub",
+			},
+			zone: "mydomain.com.",
+			result: aliDomaRecord{
+				Rr:    "sub",
+				DName: "mydomain.com",
+			},
+		},
+		{
+			memo: "record.Name with zone",
+			record: libdns.RR{
+				Name: "sub.mydomain.com",
+			},
+			zone: "mydomain.com.",
+			result: aliDomaRecord{
+				Rr:    "sub",
+				DName: "mydomain.com",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		rec := alidnsRecord(c.record, c.zone)
+		if !rec.Equals(c.result) {
+			t.Log("excepted:", c.result, "got:", rec)
+			t.Fail()
+		}
+		t.Log("case ", c.memo, "was pass.")
+	}
+
+}
+
+func Test_aliDomainRecord(t *testing.T) {
+	type testCase struct {
+		memo   string
+		record libdns.Record
+		result aliDomaRecord
+	}
+
+	cases := []testCase{
+		{
+			memo: "normal record",
+			record: libdns.RR{
+				Name: "sub",
+				Type: "A",
+				Data: "1.1.1.1",
+			},
+			result: aliDomaRecord{
+				Rr:   "sub",
+				DTyp: "A",
+				DVal: "1.1.1.1",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		rec := alidnsRecord(c.record)
+		if !rec.Equals(c.result) {
+			t.Log("excepted:", c.result, "got:", rec)
+			t.Fail()
+		}
+		t.Log("case ", c.memo, "was pass.")
+	}
+
 }

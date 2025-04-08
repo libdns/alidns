@@ -24,7 +24,7 @@ type Provider struct {
 func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
 	var rls []libdns.Record
 	for _, rec := range recs {
-		ar := alidnsRecordWithZone(rec, zone)
+		ar := alidnsRecord(rec, zone)
 		rid, err := p.addDomainRecord(ctx, ar)
 		if err != nil {
 			return nil, err
@@ -40,7 +40,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 func (p *Provider) DeleteRecords(ctx context.Context, zone string, recs []libdns.Record) ([]libdns.Record, error) {
 	var rls []libdns.Record
 	for _, rec := range recs {
-		ar := alidnsRecordWithZone(rec, zone)
+		ar := alidnsRecord(rec, zone)
 		if ar.RecID == "" {
 			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp, ar.DVal)
 			if err != nil {
@@ -76,7 +76,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 	var rls []libdns.Record
 	var err error
 	for _, rec := range recs {
-		ar := alidnsRecordWithZone(rec, zone)
+		ar := alidnsRecord(rec, zone)
 		if ar.RecID == "" {
 			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp, ar.DVal)
 			if err != nil {

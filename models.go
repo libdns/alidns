@@ -1,7 +1,6 @@
 package alidns
 
 import (
-	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +21,14 @@ type aliDomaRecord struct {
 	TTL      ttl_t  `json:"TTL,omitempty"`
 	Weight   int    `json:"Weight,omitempty"`
 	Priority ttl_t  `json:"Priority,omitempty"`
+}
+
+func (r aliDomaRecord) Equals(v aliDomaRecord) bool {
+	result := v.Rr == r.Rr
+	result = result && v.DName == r.DName
+	result = result && v.DVal == r.DVal
+	result = result && v.DTyp == r.DTyp
+	return result
 }
 
 type aliDomaRecords struct {
@@ -54,12 +61,11 @@ type aliResult struct {
 }
 
 func (r *aliDomaRecord) LibdnsRecord() libdns.Record {
-	return libdns.Record{
-		ID:    r.RecID,
-		Type:  r.DTyp,
-		Name:  r.Rr,
-		Value: r.DVal,
-		TTL:   time.Duration(r.TTL) * time.Second,
+	return libdns.RR{
+		Type: r.DTyp,
+		Name: r.Rr,
+		Data: r.DVal,
+		TTL:  time.Duration(r.TTL) * time.Second,
 	}
 }
 
@@ -78,42 +84,22 @@ func (r *aliResult) ToDomaRecord() aliDomaRecord {
 	}
 }
 
-// AlidnsRecord convert libdns.Record to aliDomaRecord
-func alidnsRecord(r libdns.Record) aliDomaRecord {
-	result := aliDomaRecord{
-		Rr:    r.Name,
-		DTyp:  r.Type,
-		DVal:  r.Value,
-		RecID: r.ID,
-		TTL:   ttl_t(r.TTL.Seconds()),
-	}
-
-	switch r.Type {
-	case "URI":
-		result.DTyp = "REDIRECT_URL"
-	case "MX":
-		result.Priority = ttl_t(r.Priority)
-	case "HTTPS":
-		tmp := make([]string, 0)
-		tmp = append(tmp, strconv.Itoa(int(r.Priority)))
-		tmp = append(tmp, r.Target)
-		tmp = append(tmp, r.Value)
-		result.DVal = strings.Join(tmp, " ")
-	case "SRV":
-		tmp := make([]string, 0)
-		tmp = append(tmp, strconv.Itoa(int(r.Priority)))
-		tmp = append(tmp, strconv.Itoa(int(r.Weight)))
-		tmp = append(tmp, r.Value)
-		result.DVal = strings.Join(tmp, " ")
-	default:
-	}
-	return result
-}
-
 // AlidnsRecord convert libdns.Record with zone to aliDomaRecord
-func alidnsRecordWithZone(r libdns.Record, zone string) aliDomaRecord {
-	r.Name = libdns.RelativeName(r.Name, zone)
-	rec := alidnsRecord(r)
-	rec.DName = strings.Trim(zone, ".")
-	return rec
+func alidnsRecord(r libdns.Record, zone ...string) aliDomaRecord {
+	result := aliDomaRecord{}
+	if r == nil {
+		return result
+	}
+	tmpRR := r.RR()
+	if len(zone) > 0 && len(zone[0]) > 0 {
+		tmpZone := zone[0]
+		result.Rr = libdns.RelativeName(tmpRR.Name, tmpZone)
+		result.DName = strings.Trim(tmpZone, ".")
+	} else {
+		result.Rr = tmpRR.Name
+	}
+	result.DTyp = tmpRR.Type
+	result.DVal = tmpRR.Data
+	result.TTL = ttl_t(tmpRR.TTL.Seconds())
+	return result
 }
