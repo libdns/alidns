@@ -1,6 +1,7 @@
 package alidns
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -71,16 +72,17 @@ func (r *aliDomaRecord) LibdnsRecord() libdns.Record {
 
 func (r *aliResult) ToDomaRecord() aliDomaRecord {
 	return aliDomaRecord{
-		RecID:  r.RecID,
-		DTyp:   r.DTyp,
-		Rr:     r.Rr,
-		DName:  r.DName,
-		DVal:   r.DVal,
-		TTL:    r.TTL,
-		Line:   r.Line,
-		Status: r.Status,
-		Locked: r.Locked,
-		Weight: r.Weight,
+		RecID:    r.RecID,
+		DTyp:     r.DTyp,
+		Rr:       r.Rr,
+		DName:    r.DName,
+		DVal:     r.DVal,
+		TTL:      r.TTL,
+		Line:     r.Line,
+		Status:   r.Status,
+		Locked:   r.Locked,
+		Weight:   r.Weight,
+		Priority: r.Priority,
 	}
 }
 
@@ -101,5 +103,9 @@ func alidnsRecord(r libdns.Record, zone ...string) aliDomaRecord {
 	result.DTyp = tmpRR.Type
 	result.DVal = tmpRR.Data
 	result.TTL = ttl_t(tmpRR.TTL.Seconds())
+	if svcb, svcbok := r.(libdns.ServiceBinding); svcbok {
+		result.Priority = ttl_t(svcb.Priority)
+		result.DVal = fmt.Sprintf("%s %s",svcb.Target,svcb.Params)
+	}
 	return result
 }
