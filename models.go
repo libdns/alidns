@@ -1,6 +1,7 @@
 package alidns
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -108,4 +109,62 @@ func alidnsRecord(r libdns.Record, zone ...string) aliDomainRecord {
 		result.DomainValue = fmt.Sprintf("%s %s", svcb.Target, svcb.Params)
 	}
 	return result
+}
+
+type opErrors struct {
+	Op            string
+	length        uint64
+	errMsgBuilder strings.Builder
+}
+
+func OpErrors(op string) *opErrors {
+	return &opErrors{
+		Op:            op,
+		errMsgBuilder: strings.Builder{},
+		length:        0,
+	}
+}
+
+func OpError(op string, err error) error {
+	errs := OpErrors(op)
+	errs.JoinError(err)
+	return errs.Error()
+}
+
+func (e *opErrors) JoinError(err error) *opErrors {
+	if err != nil {
+		msg := "caused with: "
+		msg += err.Error()
+		e.errMsgBuilder.WriteString(msg + ",")
+		e.length += 1
+	}
+	return e
+}
+
+func (e *opErrors) JoinRecord(record libdns.Record, err error) *opErrors {
+	if err != nil {
+		msg := "caused at record named "
+		msg += "'" + record.RR().Name + "'"
+		msg += ": "
+		msg += err.Error()
+		e.errMsgBuilder.WriteString(msg + ",")
+		e.length += 1
+	}
+	return e
+}
+
+func (e *opErrors) errorMsg() string {
+	msg := "there is something error "
+	if len(e.Op) > 0 {
+		msg += "when '" + e.Op + "'"
+	}
+	msg += ": "
+	return strings.TrimSuffix(msg+e.errMsgBuilder.String(), ",")
+}
+
+func (e *opErrors) Error() error {
+	if e.length > 0 {
+		return errors.New(e.errorMsg())
+	}
+	return nil
 }

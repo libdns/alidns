@@ -1,6 +1,7 @@
 package alidns
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/libdns/libdns"
@@ -101,4 +102,69 @@ func Test_aliDomainRecord(t *testing.T) {
 		t.Log("case ", c.memo, "was pass.")
 	}
 
+}
+
+func TestOpError(t *testing.T) {
+	type testCase struct {
+		memo   string
+		record error
+		result error
+	}
+
+	cases := []testCase{
+		{
+			memo:   "error with op",
+			record: OpError("op", errors.New("something wrong")),
+			result: errors.New("there is something error when 'op': caused with: something wrong"),
+		},
+		{
+			memo:   "error with none error",
+			record: OpError("op",nil),
+			result: nil,
+		},
+	}
+
+	for _, c := range cases {
+		if (c.record != nil && c.result != nil )&& c.record.Error() != c.result.Error() {
+			t.Log("excepted:", c.result.Error(), "got:", c.record.Error())
+			t.Fail()
+			return
+		}
+		t.Log("case ", c.memo, "was pass.")
+	}
+}
+
+func TestOpErrors(t *testing.T) {
+	type testCase struct {
+		memo   string
+		record error
+		result error
+	}
+
+	cases := []testCase{
+		{
+			memo:   "error with op",
+			record: OpErrors("op").JoinError(errors.New("something wrong")).Error(),
+			result: errors.New("there is something error when 'op': caused with: something wrong"),
+		},
+		{
+			memo:   "error with op and record",
+			record: OpErrors("op").JoinRecord(libdns.RR{Name: "rec"}, errors.New("something wrong")).Error(),
+			result: errors.New("there is something error when 'op': caused at record named 'rec': something wrong"),
+		},
+		{
+			memo:   "error with none error",
+			record: OpErrors("op").Error(),
+			result: nil,
+		},
+	}
+
+	for _, c := range cases {
+		if (c.record != nil && c.result != nil )&& c.record.Error() != c.result.Error() {
+			t.Log("excepted:", c.result.Error(), "got:", c.record.Error())
+			t.Fail()
+			return
+		}
+		t.Log("case ", c.memo, "was pass.")
+	}
 }
