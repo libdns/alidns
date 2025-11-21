@@ -3,25 +3,61 @@ package alidns
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 )
 
-// mClient is an abstration of AliClient
-type mClient struct {
-	aClient *aliClient
-	mutex   sync.Mutex
+// aliClient is an abstration of AliClient
+type aliClient struct {
+	schema *aliClientSchema
+	mutex  sync.Mutex
 }
 
 // TODO:Will complete,If we need to get Domain Info for something.
-func (c *mClient) getDomainInfo(ctx context.Context, zone string) error {
+func (c *aliClient) getDomainInfo(ctx context.Context, zone string) error {
 	return nil
 }
 
-func (c *mClient) doAPIRequest(ctx context.Context, method string, result interface{}) error {
-	req, err := c.applyReq(ctx, method, nil)
+func (c *aliClient) getClientSchema(cred *CredentialInfo, zone string) error {
+	schema, err := getClientSchema(cred, "https")
+	if err != nil {
+		return err
+	}
+	c.schema = schema
+	if zone != "" {
+		c.getDomainInfo(context.Background(), strings.Trim(zone, "."))
+	}
+	return nil
+}
+
+func (c *aliClient) AddRequestBody(key string, value string) error {
+	if c.schema == nil {
+		return errors.New("schema was not initialed proprely")
+	}
+	return c.schema.addReqBody(key, value)
+}
+
+func (c *aliClient) SetRequestBody(key string, value string) error {
+	if c.schema == nil {
+		return errors.New("schema was not initialed proprely")
+	}
+	return c.schema.setReqBody(key, value)
+}
+
+func (c *aliClient) Lock() {
+	c.mutex.Lock()
+}
+
+func (c *aliClient) Unlock() {
+	c.mutex.Unlock()
+}
+
+func (c *aliClient) DoAPIRequest(ctx context.Context, method string, result interface{}) error {
+	req, err := c.schema.HttpRequest(ctx, method, nil)
 	if err != nil {
 		return err
 	}
@@ -44,8 +80,8 @@ func (c *mClient) doAPIRequest(ctx context.Context, method string, result interf
 		return err
 	}
 	if rsp.StatusCode != 200 {
-		return fmt.Errorf("get error status: HTTP %d: %+v", rsp.StatusCode, result.(*aliResult).Msg)
+		return fmt.Errorf("get error status: HTTP %d: %+v", rsp.StatusCode, result.(*aliDomainResult).Msg)
 	}
-	c.aClient = nil
+	c.schema = nil
 	return err
 }

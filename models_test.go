@@ -11,7 +11,7 @@ func Test_aliDomainRecordWithZone(t *testing.T) {
 		memo   string
 		record libdns.Record
 		zone   string
-		result aliDomaRecord
+		result aliDomainRecord
 	}
 
 	cases := []testCase{
@@ -21,9 +21,9 @@ func Test_aliDomainRecordWithZone(t *testing.T) {
 				Name: "sub",
 			},
 			zone: "mydomain.com.",
-			result: aliDomaRecord{
-				Rr:    "sub",
-				DName: "mydomain.com",
+			result: aliDomainRecord{
+				Rr:         "sub",
+				DomainName: "mydomain.com",
 			},
 		},
 		{
@@ -32,9 +32,9 @@ func Test_aliDomainRecordWithZone(t *testing.T) {
 				Name: "sub.mydomain.com",
 			},
 			zone: "mydomain.com.",
-			result: aliDomaRecord{
-				Rr:    "sub",
-				DName: "mydomain.com",
+			result: aliDomainRecord{
+				Rr:         "sub",
+				DomainName: "mydomain.com",
 			},
 		},
 	}
@@ -54,7 +54,7 @@ func Test_aliDomainRecord(t *testing.T) {
 	type testCase struct {
 		memo   string
 		record libdns.Record
-		result aliDomaRecord
+		result aliDomainRecord
 	}
 
 	cases := []testCase{
@@ -65,10 +65,10 @@ func Test_aliDomainRecord(t *testing.T) {
 				Type: "A",
 				Data: "1.1.1.1",
 			},
-			result: aliDomaRecord{
-				Rr:   "sub",
-				DTyp: "A",
-				DVal: "1.1.1.1",
+			result: aliDomainRecord{
+				Rr:          "sub",
+				DomainType:  "A",
+				DomainValue: "1.1.1.1",
 			},
 		},
 		{
@@ -82,11 +82,11 @@ func Test_aliDomainRecord(t *testing.T) {
 					"alpn": {"333"},
 				},
 			},
-			result: aliDomaRecord{
-				Rr:    "sub",
-				DTyp:     "HTTPS",
-				Priority: 100,
-				DVal:     "target.com alpn=333",
+			result: aliDomainRecord{
+				Rr:          "sub",
+				DomainType:  "HTTPS",
+				Priority:    100,
+				DomainValue: "target.com alpn=333",
 			},
 		},
 	}

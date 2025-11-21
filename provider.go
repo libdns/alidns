@@ -11,7 +11,7 @@ import (
 
 // Provider implements the libdns interfaces for Alicloud.
 type Provider struct {
-	client mClient
+	client aliClient
 	// The API Key ID Required by Aliyun's for accessing the Aliyun's API
 	AccKeyID string `json:"access_key_id"`
 	// The API Key Secret Required by Aliyun's for accessing the Aliyun's API
@@ -29,8 +29,8 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 		if err != nil {
 			return nil, err
 		}
-		ar.RecID = rid
-		rls = append(rls, ar.LibdnsRecord())
+		ar.RecordID = rid
+		rls = append(rls, ar)
 	}
 	return rls, nil
 }
@@ -41,18 +41,18 @@ func (p *Provider) DeleteRecords(ctx context.Context, zone string, recs []libdns
 	var rls []libdns.Record
 	for _, rec := range recs {
 		ar := alidnsRecord(rec, zone)
-		if ar.RecID == "" {
-			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp, ar.DVal)
+		if ar.RecordID == "" {
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DomainName, ar.DomainType, ar.DomainValue)
 			if err != nil {
 				return nil, err
 			}
-			ar.RecID = r0.RecID
+			ar.RecordID = r0.RecordID
 		}
 		_, err := p.delDomainRecord(ctx, ar)
 		if err != nil {
 			return nil, err
 		}
-		rls = append(rls, ar.LibdnsRecord())
+		rls = append(rls, ar)
 	}
 	return rls, nil
 }
@@ -65,7 +65,7 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 		return nil, err
 	}
 	for _, rec := range recs {
-		rls = append(rls, rec.LibdnsRecord())
+		rls = append(rls, rec)
 	}
 	return rls, nil
 }
@@ -77,15 +77,15 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 	var err error
 	for _, rec := range recs {
 		ar := alidnsRecord(rec, zone)
-		if ar.RecID == "" {
-			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DName, ar.DTyp, ar.DVal)
+		if ar.RecordID == "" {
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DomainName, ar.DomainType, ar.DomainValue)
 			if err != nil {
-				ar.RecID, err = p.addDomainRecord(ctx, ar)
+				ar.RecordID, err = p.addDomainRecord(ctx, ar)
 				if err != nil {
 					return nil, err
 				}
 			} else {
-				ar.RecID = r0.RecID
+				ar.RecordID = r0.RecordID
 			}
 		} else {
 			_, err = p.setDomainRecord(ctx, ar)
@@ -93,7 +93,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 				return nil, err
 			}
 		}
-		rls = append(rls, ar.LibdnsRecord())
+		rls = append(rls, ar)
 	}
 	return rls, nil
 }
@@ -103,24 +103,24 @@ func (p *Provider) getClient() error {
 }
 
 func (p *Provider) getClientWithZone(zone string) error {
-	cred := newCredInfo(p.AccKeyID, p.AccKeySecret, p.RegionID)
-	return p.client.getAliClient(cred, zone)
+	cred := NewCredentialInfo(p.AccKeyID, p.AccKeySecret, p.RegionID)
+	return p.client.getClientSchema(cred, zone)
 }
 
-func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
-	p.getClientWithZone(rc.DName)
+func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomainRecord) (recID string, err error) {
+	p.client.Lock()
+	defer p.client.Unlock()
+	p.getClientWithZone(rc.DomainName)
 	if rc.TTL <= 0 {
 		rc.TTL = 600
 	}
-	p.client.aClient.addReqBody("Action", "AddDomainRecord")
-	p.client.aClient.addReqBody("DomainName", rc.DName)
-	p.client.aClient.addReqBody("RR", rc.Rr)
-	p.client.aClient.addReqBody("Type", rc.DTyp)
-	p.client.aClient.addReqBody("Value", rc.DVal)
-	p.client.aClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "AddDomainRecord")
+	p.client.AddRequestBody("DomainName", rc.DomainName)
+	p.client.AddRequestBody("RR", rc.Rr)
+	p.client.AddRequestBody("Type", rc.DomainType)
+	p.client.AddRequestBody("Value", rc.DomainValue)
+	p.client.AddRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	rs := aliDomainResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
 	if err != nil {
@@ -129,13 +129,13 @@ func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 	return recID, err
 }
 
-func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
+func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomainRecord) (recID string, err error) {
+	p.client.Lock()
+	defer p.client.Unlock()
 	p.getClient()
-	p.client.aClient.addReqBody("Action", "DeleteDomainRecord")
-	p.client.aClient.addReqBody("RecordId", rc.RecID)
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "DeleteDomainRecord")
+	p.client.AddRequestBody("RecordId", rc.RecordID)
+	rs := aliDomainResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
 	if err != nil {
@@ -144,20 +144,20 @@ func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 	return recID, err
 }
 
-func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomaRecord) (recID string, err error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
-	p.getClientWithZone(rc.DName)
+func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomainRecord) (recID string, err error) {
+	p.client.Lock()
+	defer p.client.Unlock()
+	p.getClientWithZone(rc.DomainName)
 	if rc.TTL <= 0 {
 		rc.TTL = 600
 	}
-	p.client.aClient.addReqBody("Action", "UpdateDomainRecord")
-	p.client.aClient.addReqBody("RecordId", rc.RecID)
-	p.client.aClient.addReqBody("RR", rc.Rr)
-	p.client.aClient.addReqBody("Type", rc.DTyp)
-	p.client.aClient.addReqBody("Value", rc.DVal)
-	p.client.aClient.addReqBody("TTL", fmt.Sprintf("%d", rc.TTL))
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "UpdateDomainRecord")
+	p.client.AddRequestBody("RecordId", rc.RecordID)
+	p.client.AddRequestBody("RR", rc.Rr)
+	p.client.AddRequestBody("Type", rc.DomainType)
+	p.client.AddRequestBody("Value", rc.DomainValue)
+	p.client.AddRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	rs := aliDomainResult{}
 	err = p.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
 	if err != nil {
@@ -166,77 +166,77 @@ func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomaRecord) (recID
 	return recID, err
 }
 
-func (p *Provider) getDomainRecord(ctx context.Context, recID string) (aliDomaRecord, error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
+func (p *Provider) getDomainRecord(ctx context.Context, recID string) (aliDomainRecord, error) {
+	p.client.Lock()
+	defer p.client.Unlock()
 	p.getClient()
-	p.client.aClient.addReqBody("Action", "DescribeDomainRecordInfo")
-	p.client.aClient.addReqBody("RecordId", recID)
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "DescribeDomainRecordInfo")
+	p.client.AddRequestBody("RecordId", recID)
+	rs := aliDomainResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	rec := rs.ToDomaRecord()
 	if err != nil {
-		return aliDomaRecord{}, err
+		return aliDomainRecord{}, err
 	}
 	return rec, err
 }
 
-func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDomaRecord, error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
+func (p *Provider) queryDomainRecords(ctx context.Context, name string) ([]aliDomainRecord, error) {
+	p.client.Lock()
+	defer p.client.Unlock()
 	p.getClient()
-	p.client.aClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.aClient.addReqBody("DomainName", strings.Trim(name, "."))
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "DescribeDomainRecords")
+	p.client.AddRequestBody("DomainName", strings.Trim(name, "."))
+	rs := aliDomainResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
-		return []aliDomaRecord{}, err
+		return []aliDomainRecord{}, err
 	}
-	return rs.DRecords.Record, err
+	return rs.DomainRecords.Record, err
 }
 
-func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recType string, recVal ...string) (aliDomaRecord, error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
+func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recType string, recVal ...string) (aliDomainRecord, error) {
+	p.client.Lock()
+	defer p.client.Unlock()
 	p.getClient()
-	p.client.aClient.addReqBody("Action", "DescribeDomainRecords")
-	p.client.aClient.addReqBody("DomainName", strings.Trim(name, "."))
-	p.client.aClient.addReqBody("RRKeyWord", rr)
+	p.client.AddRequestBody("Action", "DescribeDomainRecords")
+	p.client.AddRequestBody("DomainName", strings.Trim(name, "."))
+	p.client.AddRequestBody("RRKeyWord", rr)
 	if recType != "" {
-		p.client.aClient.addReqBody("TypeKeyWord", recType)
+		p.client.AddRequestBody("TypeKeyWord", recType)
 	}
 	if len(recVal) > 0 && recVal[0] != "" {
-		p.client.aClient.addReqBody("ValueKeyWord", recVal[0])
+		p.client.AddRequestBody("ValueKeyWord", recVal[0])
 	}
-	p.client.aClient.addReqBody("SearchMode", "ADVANCED")
-	rs := aliResult{}
+	p.client.AddRequestBody("SearchMode", "ADVANCED")
+	rs := aliDomainResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
-		return aliDomaRecord{}, err
+		return aliDomainRecord{}, err
 	}
-	if len(rs.DRecords.Record) == 0 {
-		return aliDomaRecord{}, errors.New("the Record Name of the domain not found")
+	if len(rs.DomainRecords.Record) == 0 {
+		return aliDomainRecord{}, errors.New("the Record Name of the domain not found")
 	}
-	return rs.DRecords.Record[0], err
+	return rs.DomainRecords.Record[0], err
 }
 
 // REVERSED:queryMainDomain rseserved for absolute names to name,zone
 func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, string, error) {
-	p.client.mutex.Lock()
-	defer p.client.mutex.Unlock()
+	p.client.Lock()
+	defer p.client.Unlock()
 	p.getClient()
-	p.client.aClient.addReqBody("Action", "GetMainDomainName")
-	p.client.aClient.addReqBody("InputString", strings.Trim(name, "."))
-	rs := aliResult{}
+	p.client.AddRequestBody("Action", "GetMainDomainName")
+	p.client.AddRequestBody("InputString", strings.Trim(name, "."))
+	rs := aliDomainResult{}
 	err := p.doAPIRequest(ctx, &rs)
 	if err != nil {
 		return "", "", err
 	}
-	return rs.Rr, rs.DName, err
+	return rs.Rr, rs.DomainName, err
 }
 
 func (p *Provider) doAPIRequest(ctx context.Context, result interface{}) error {
-	return p.client.doAPIRequest(ctx, "GET", result)
+	return p.client.DoAPIRequest(ctx, "GET", result)
 }
 
 // Interface guards

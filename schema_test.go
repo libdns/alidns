@@ -18,7 +18,7 @@ func Test_URLEncode(t *testing.T) {
 	t.Log(s0)
 }
 
-var cl0 = &aliClient{
+var cl0 = &aliClientSchema{
 	APIHost: fmt.Sprintf(addrOfAPI, "https"),
 	reqMap: []vKey{
 		{key: "AccessKeyId", val: "testid"},
@@ -66,9 +66,9 @@ var p0 = Provider{
 
 func Test_RequestUrl(t *testing.T) {
 	p0.getClient()
-	p0.client.aClient.addReqBody("Action", "DescribeDomainRecords")
-	p0.client.aClient.addReqBody("DomainName", "viscrop.top")
-	p0.client.aClient.setReqBody("Timestamp", "2020-10-16T20:10:54Z")
-	r, err := p0.client.applyReq(context.TODO(), "GET", nil)
+	p0.client.AddRequestBody("Action", "DescribeDomainRecords")
+	p0.client.AddRequestBody("DomainName", "viscrop.top")
+	p0.client.SetRequestBody("Timestamp", "2020-10-16T20:10:54Z")
+	r, err := p0.client.schema.HttpRequest(context.TODO(), "GET", nil)
 	t.Log("url:", r.URL.String(), "err:", err)
 }

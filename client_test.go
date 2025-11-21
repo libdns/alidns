@@ -3,17 +3,16 @@ package alidns
 import (
 	"context"
 	"testing"
-
 )
 
 func Test_ClientAPIReq(t *testing.T) {
 	p0.getClient()
-	p0.client.aClient.addReqBody("Action", "DescribeDomainRecords")
-	p0.client.aClient.addReqBody("KeyWords", "vi")
+	p0.client.AddRequestBody("Action", "DescribeDomainRecords")
+	p0.client.AddRequestBody("KeyWords", "vi")
 	var rs aliDomaRecords
-	rspData := aliResult{}
+	rspData := aliDomainResult{}
 	err := p0.doAPIRequest(context.TODO(), &rspData)
-	t.Log("req", p0.client.aClient, "data", rspData, "err:", err, "rs:", rs)
+	t.Log("req", p0.client.schema, "data", rspData, "err:", err, "rs:", rs)
 }
 
 func Test_QueryDomainRecord(t *testing.T) {
@@ -34,12 +33,12 @@ func Test_QueryDomainRecords(t *testing.T) {
 }
 
 func Test_DomainRecordOp(t *testing.T) {
-	dr0 := aliDomaRecord{
-		DName: "viscrop.top",
-		Rr:    "baidu",
-		DTyp:  "CNAME",
-		DVal:  "baidu.com",
-		TTL:   600,
+	dr0 := aliDomainRecord{
+		DomainName:  "viscrop.top",
+		Rr:          "baidu",
+		DomainType:  "CNAME",
+		DomainValue: "baidu.com",
+		TTL:         600,
 	}
 	r0, err := p0.addDomainRecord(context.TODO(), dr0)
 	t.Log("result:", r0, "err:", err)
@@ -51,4 +50,3 @@ func Test_DomainRecordOp(t *testing.T) {
 	r0, err = p0.delDomainRecord(context.TODO(), dr0)
 	t.Log("result:", r0, "err:", err)
 }
-

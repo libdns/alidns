@@ -22,15 +22,15 @@ import (
 const defRegID string = "cn-hangzhou"
 const addrOfAPI string = "%s://alidns.aliyuncs.com/"
 
-// CredInfo implements param of the crediential
-type CredInfo struct {
+// CredentialInfo implements param of the crediential
+type CredentialInfo struct {
 	AccKeyID     string `json:"access_key_id"`
 	AccKeySecret string `json:"access_key_secret"`
 	RegionID     string `json:"region_id,omitempty"`
 }
 
-// AliClient abstructs the alidns.Client
-type aliClient struct {
+// aliClientSchema abstructs the alidns.Client
+type aliClientSchema struct {
 	mutex   sync.Mutex
 	APIHost string
 	reqMap  []vKey
@@ -44,57 +44,29 @@ type vKey struct {
 	val string
 }
 
-func newCredInfo(pAccKeyID, pAccKeySecret, pRegionID string) *CredInfo {
+func NewCredentialInfo(pAccKeyID, pAccKeySecret, pRegionID string) *CredentialInfo {
 	if pAccKeyID == "" || pAccKeySecret == "" {
 		return nil
 	}
 	if len(pRegionID) == 0 {
 		pRegionID = defRegID
 	}
-	return &CredInfo{
+	return &CredentialInfo{
 		AccKeyID:     pAccKeyID,
 		AccKeySecret: pAccKeySecret,
 		RegionID:     pRegionID,
 	}
 }
 
-func (c *mClient) getAliClient(cred *CredInfo, zone string) error {
-	cl0, err := c.aClient.getAliClientSche(cred, "https")
-	if err != nil {
-		return err
-	}
-	c.aClient = cl0
-	if zone != "" {
-		c.getDomainInfo(context.Background(), strings.Trim(zone, "."))
-	}
-	return nil
-}
-
-func (c *mClient) applyReq(cxt context.Context, method string, body io.Reader) (*http.Request, error) {
-	if method == "" {
-		method = "GET"
-	}
-	c0 := c.aClient
-	c0.signReq(method)
-	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c0.sigStr, "+", "%2B"))
-	mURL := fmt.Sprintf("%s?%s&%s", c0.APIHost, c0.reqMapToStr(), si0)
-	req, err := http.NewRequestWithContext(cxt, method, mURL, body)
-	req.Header.Set("Accept", "application/json")
-	if err != nil {
-		return &http.Request{}, err
-	}
-	return req, nil
-}
-
-func (c *aliClient) getAliClientSche(cred *CredInfo, scheme string) (*aliClient, error) {
+func getClientSchema(cred *CredentialInfo, scheme string) (*aliClientSchema, error) {
 	if cred == nil {
-		return &aliClient{}, errors.New("alidns: credentials missing")
+		return &aliClientSchema{}, errors.New("alidns: credentials missing")
 	}
 	if scheme == "" {
 		scheme = "http"
 	}
 
-	cl0 := &aliClient{
+	cl0 := &aliClientSchema{
 		APIHost: fmt.Sprintf(addrOfAPI, scheme),
 		reqMap: []vKey{
 			{key: "AccessKeyId", val: cred.AccKeyID},
@@ -112,7 +84,7 @@ func (c *aliClient) getAliClientSche(cred *CredInfo, scheme string) (*aliClient,
 	return cl0, nil
 }
 
-func (c *aliClient) signReq(method string) error {
+func (c *aliClientSchema) signReq(method string) error {
 	if c.sigPwd == "" || len(c.reqMap) == 0 {
 		return errors.New("alidns: AccessKeySecret or Request(includes AccessKeyId) is Misssing")
 	}
@@ -123,7 +95,7 @@ func (c *aliClient) signReq(method string) error {
 	return nil
 }
 
-func (c *aliClient) addReqBody(key string, value string) error {
+func (c *aliClientSchema) addReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("key or value is Empty")
 	}
@@ -140,7 +112,7 @@ func (c *aliClient) addReqBody(key string, value string) error {
 	return nil
 }
 
-func (c *aliClient) setReqBody(key string, value string) error {
+func (c *aliClientSchema) setReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("key or value is Empty")
 	}
@@ -157,7 +129,7 @@ func (c *aliClient) setReqBody(key string, value string) error {
 	return fmt.Errorf("entry of %s not found", key)
 }
 
-func (c *aliClient) reqStrToSign(ins string, method string) string {
+func (c *aliClientSchema) reqStrToSign(ins string, method string) string {
 	if method == "" {
 		method = "GET"
 	}
@@ -165,7 +137,7 @@ func (c *aliClient) reqStrToSign(ins string, method string) string {
 	return fmt.Sprintf("%s&%s&%s", method, "%2F", ecReq)
 }
 
-func (c *aliClient) reqMapToStr() string {
+func (c *aliClientSchema) reqMapToStr() string {
 	m0 := c.reqMap
 	urlEn := url.Values{}
 	c.mutex.Lock()
@@ -174,6 +146,22 @@ func (c *aliClient) reqMapToStr() string {
 	}
 	c.mutex.Unlock()
 	return urlEn.Encode()
+}
+
+// HttpRequest generates http.Request from schema
+func (c *aliClientSchema) HttpRequest(cxt context.Context, method string, body io.Reader) (*http.Request, error) {
+	if method == "" {
+		method = "GET"
+	}
+	c.signReq(method)
+	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c.sigStr, "+", "%2B"))
+	mURL := fmt.Sprintf("%s?%s&%s", c.APIHost, c.reqMapToStr(), si0)
+	req, err := http.NewRequestWithContext(cxt, method, mURL, body)
+	req.Header.Set("Accept", "application/json")
+	if err != nil {
+		return &http.Request{}, err
+	}
+	return req, nil
 }
 
 func signStr(ins string, sec string) string {
