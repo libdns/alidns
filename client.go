@@ -57,7 +57,7 @@ func (c *aliClient) Unlock() {
 }
 
 func (c *aliClient) DoAPIRequest(ctx context.Context, method string, result interface{}) error {
-	req, err := c.schema.HttpRequest(ctx, method, nil)
+	req, err := c.schema.HttpRequest(ctx, method)
 	if err != nil {
 		return err
 	}
@@ -70,12 +70,11 @@ func (c *aliClient) DoAPIRequest(ctx context.Context, method string, result inte
 
 	var buf []byte
 	buf, err = io.ReadAll(rsp.Body)
-	strBody := string(buf)
 	if err != nil {
 		return err
 	}
 
-	err = json.Unmarshal([]byte(strBody), result)
+	err = json.Unmarshal(buf, result)
 	if err != nil {
 		return err
 	}
