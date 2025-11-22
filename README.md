@@ -4,6 +4,8 @@ AliDNS for [`libdns`](https://github.com/libdns/libdns)
 
 This package implements the [libdns interfaces](https://github.com/libdns/libdns), allowing you to manage DNS records with the [AliDNS API](https://api.aliyun.com/document/Alidns/2015-01-09/overview) ( which has a nice Go SDK implementation [here](https://github.com/aliyun/alibabacloud-go-sdk/tree/7f23fa1a357f6570dddd74103a15edeea5b69d37/alidns-20150109) )
 
+The document of request and signing processing are [v2](https://help.aliyun.com/zh/sdk/product-overview/rpc-mechanism) and [v3](https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature) (I'll upgrade the request and signing processing to v3 later.)
+
 ## Authenticating
 
 To authenticate you need to supply our AccessKeyId and AccessKeySecret to the Provider.
