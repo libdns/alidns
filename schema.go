@@ -19,42 +19,43 @@ import (
 	"time"
 )
 
-const defRegID string = "cn-hangzhou"
-const addrOfAPI string = "%s://alidns.aliyuncs.com/"
+const defaultRegionID string = "cn-hangzhou"
+const addressOfAPI string = "%s://alidns.aliyuncs.com/"
 
 // CredentialInfo implements param of the crediential
 type CredentialInfo struct {
-	AccKeyID     string `json:"access_key_id"`
-	AccKeySecret string `json:"access_key_secret"`
-	RegionID     string `json:"region_id,omitempty"`
+	AccessKeyID     string `json:"access_key_id"`
+	AccessKeySecret string `json:"access_key_secret"`
+	RegionID        string `json:"region_id,omitempty"`
+	SecurityToken   string `json:"security_token,omitempty"`
 }
 
 // aliClientSchema abstructs the alidns.Client
 type aliClientSchema struct {
-	mutex   sync.Mutex
-	APIHost string
-	reqMap  []vKey
-	sigStr  string
-	sigPwd  string
+	mutex        sync.Mutex
+	APIHost      string
+	requestMap   []keyPair
+	signString   string
+	signPassword string
 }
 
-// VKey implments of K-V struct
-type vKey struct {
-	key string
-	val string
+// keyPair implments of K-V struct
+type keyPair struct {
+	Key   string
+	Value string
 }
 
-func NewCredentialInfo(pAccKeyID, pAccKeySecret, pRegionID string) *CredentialInfo {
-	if pAccKeyID == "" || pAccKeySecret == "" {
+func NewCredentialInfo(accessKeyID, accessKeySecret, regionID string) *CredentialInfo {
+	if accessKeyID == "" || accessKeySecret == "" {
 		return nil
 	}
-	if len(pRegionID) == 0 {
-		pRegionID = defRegID
+	if len(regionID) == 0 {
+		regionID = defaultRegionID
 	}
 	return &CredentialInfo{
-		AccKeyID:     pAccKeyID,
-		AccKeySecret: pAccKeySecret,
-		RegionID:     pRegionID,
+		AccessKeyID:     accessKeyID,
+		AccessKeySecret: accessKeySecret,
+		RegionID:        regionID,
 	}
 }
 
@@ -67,31 +68,31 @@ func getClientSchema(cred *CredentialInfo, scheme string) (*aliClientSchema, err
 	}
 
 	cl0 := &aliClientSchema{
-		APIHost: fmt.Sprintf(addrOfAPI, scheme),
-		reqMap: []vKey{
-			{key: "AccessKeyId", val: cred.AccKeyID},
-			{key: "Format", val: "JSON"},
-			{key: "SignatureMethod", val: "HMAC-SHA1"},
-			{key: "SignatureNonce", val: fmt.Sprintf("%d", time.Now().UnixNano())},
-			{key: "SignatureVersion", val: "1.0"},
-			{key: "Timestamp", val: time.Now().UTC().Format("2006-01-02T15:04:05Z")},
-			{key: "Version", val: "2015-01-09"},
+		APIHost: fmt.Sprintf(addressOfAPI, scheme),
+		requestMap: []keyPair{
+			{Key: "AccessKeyId", Value: cred.AccessKeyID},
+			{Key: "Format", Value: "JSON"},
+			{Key: "SignatureMethod", Value: "HMAC-SHA1"},
+			{Key: "SignatureNonce", Value: fmt.Sprintf("%d", time.Now().UnixNano())},
+			{Key: "SignatureVersion", Value: "1.0"},
+			{Key: "Timestamp", Value: time.Now().UTC().Format("2006-01-02T15:04:05Z")},
+			{Key: "Version", Value: "2015-01-09"},
 		},
-		sigStr: "",
-		sigPwd: cred.AccKeySecret,
+		signString:   "",
+		signPassword: cred.AccessKeySecret,
 	}
 
 	return cl0, nil
 }
 
 func (c *aliClientSchema) signReq(method string) error {
-	if c.sigPwd == "" || len(c.reqMap) == 0 {
+	if c.signPassword == "" || len(c.requestMap) == 0 {
 		return errors.New("alidns: AccessKeySecret or Request(includes AccessKeyId) is Misssing")
 	}
-	sort.Sort(byKey(c.reqMap))
+	sort.Sort(byKey(c.requestMap))
 	str := c.reqMapToStr()
 	str = c.reqStrToSign(str, method)
-	c.sigStr = signStr(str, c.sigPwd)
+	c.signString = signStr(str, c.signPassword)
 	return nil
 }
 
@@ -99,15 +100,15 @@ func (c *aliClientSchema) addReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("key or value is Empty")
 	}
-	el := vKey{key: key, val: value}
+	el := keyPair{Key: key, Value: value}
 	c.mutex.Lock()
-	for _, el0 := range c.reqMap {
-		if el.key == el0.key {
+	for _, el0 := range c.requestMap {
+		if el.Key == el0.Key {
 			c.mutex.Unlock()
 			return errors.New("duplicate keys")
 		}
 	}
-	c.reqMap = append(c.reqMap, el)
+	c.requestMap = append(c.requestMap, el)
 	c.mutex.Unlock()
 	return nil
 }
@@ -116,11 +117,11 @@ func (c *aliClientSchema) setReqBody(key string, value string) error {
 	if key == "" && value == "" {
 		return errors.New("key or value is Empty")
 	}
-	el := vKey{key: key, val: value}
+	el := keyPair{Key: key, Value: value}
 	c.mutex.Lock()
-	for in, el0 := range c.reqMap {
-		if el.key == el0.key {
-			(c.reqMap)[in] = el
+	for in, el0 := range c.requestMap {
+		if el.Key == el0.Key {
+			(c.requestMap)[in] = el
 			c.mutex.Unlock()
 			return nil
 		}
@@ -129,20 +130,20 @@ func (c *aliClientSchema) setReqBody(key string, value string) error {
 	return fmt.Errorf("entry of %s not found", key)
 }
 
-func (c *aliClientSchema) reqStrToSign(ins string, method string) string {
+func (c *aliClientSchema) reqStrToSign(src string, method string) string {
 	if method == "" {
 		method = "GET"
 	}
-	ecReq := urlEncode(ins)
+	ecReq := urlEncode(src)
 	return fmt.Sprintf("%s&%s&%s", method, "%2F", ecReq)
 }
 
 func (c *aliClientSchema) reqMapToStr() string {
-	m0 := c.reqMap
+	m0 := c.requestMap
 	urlEn := url.Values{}
 	c.mutex.Lock()
 	for _, o := range m0 {
-		urlEn.Add(o.key, o.val)
+		urlEn.Add(o.Key, o.Value)
 	}
 	c.mutex.Unlock()
 	return urlEn.Encode()
@@ -154,7 +155,7 @@ func (c *aliClientSchema) HttpRequest(cxt context.Context, method string, body i
 		method = "GET"
 	}
 	c.signReq(method)
-	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c.sigStr, "+", "%2B"))
+	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c.signString, "+", "%2B"))
 	mURL := fmt.Sprintf("%s?%s&%s", c.APIHost, c.reqMapToStr(), si0)
 	req, err := http.NewRequestWithContext(cxt, method, mURL, body)
 	req.Header.Set("Accept", "application/json")
@@ -164,28 +165,28 @@ func (c *aliClientSchema) HttpRequest(cxt context.Context, method string, body i
 	return req, nil
 }
 
-func signStr(ins string, sec string) string {
-	sec = sec + "&"
-	hm := hmac.New(sha1.New, []byte(sec))
-	hm.Write([]byte(ins))
+func signStr(src string, secret string) string {
+	secret = secret + "&"
+	hm := hmac.New(sha1.New, []byte(secret))
+	hm.Write([]byte(src))
 	sum := hm.Sum(nil)
 	return base64.StdEncoding.EncodeToString(sum)
 }
 
 func goVer() float64 {
-	verStr := runtime.Version()
-	verStr, _ = strings.CutPrefix(verStr, "go")
-	verStrs := strings.Split(verStr, ".")
+	versionString := runtime.Version()
+	versionString, _ = strings.CutPrefix(versionString, "go")
+	verStrings := strings.Split(versionString, ".")
 	var result float64
-	for i, v := range verStrs {
+	for i, v := range verStrings {
 		tmp, _ := strconv.ParseFloat(v, 32)
 		result = tmp * (1 / math.Pow10(i))
 	}
 	return result
 }
 
-func urlEncode(ins string) string {
-	str0 := ins
+func urlEncode(src string) string {
+	str0 := src
 	str0 = strings.Replace(str0, "+", "%20", -1)
 	str0 = strings.Replace(str0, "*", "%2A", -1)
 	str0 = strings.Replace(str0, "%7E", "~", -1)
@@ -198,7 +199,7 @@ func urlEncode(ins string) string {
 	return str0
 }
 
-type byKey []vKey
+type byKey []keyPair
 
 func (v byKey) Len() int {
 	return len(v)
@@ -209,5 +210,5 @@ func (v byKey) Swap(i, j int) {
 }
 
 func (v byKey) Less(i, j int) bool {
-	return v[i].key < v[j].key
+	return v[i].Key < v[j].Key
 }

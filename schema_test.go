@@ -19,20 +19,20 @@ func Test_URLEncode(t *testing.T) {
 }
 
 var cl0 = &aliClientSchema{
-	APIHost: fmt.Sprintf(addrOfAPI, "https"),
-	reqMap: []vKey{
-		{key: "AccessKeyId", val: "testid"},
-		{key: "Format", val: "XML"},
-		{key: "Action", val: "DescribeDomainRecords"},
-		{key: "SignatureMethod", val: "HMAC-SHA1"},
-		{key: "DomainName", val: "example.com"},
-		{key: "SignatureVersion", val: "1.0"},
-		{key: "SignatureNonce", val: "f59ed6a9-83fc-473b-9cc6-99c95df3856e"},
-		{key: "Timestamp", val: "2016-03-24T16:41:54Z"},
-		{key: "Version", val: "2015-01-09"},
+	APIHost: fmt.Sprintf(addressOfAPI, "https"),
+	requestMap: []keyPair{
+		{Key: "AccessKeyId", Value: "testid"},
+		{Key: "Format", Value: "XML"},
+		{Key: "Action", Value: "DescribeDomainRecords"},
+		{Key: "SignatureMethod", Value: "HMAC-SHA1"},
+		{Key: "DomainName", Value: "example.com"},
+		{Key: "SignatureVersion", Value: "1.0"},
+		{Key: "SignatureNonce", Value: "f59ed6a9-83fc-473b-9cc6-99c95df3856e"},
+		{Key: "Timestamp", Value: "2016-03-24T16:41:54Z"},
+		{Key: "Version", Value: "2015-01-09"},
 	},
-	sigStr: "",
-	sigPwd: "testsecret",
+	signString:   "",
+	signPassword: "testsecret",
 }
 
 func Test_AliClintReq(t *testing.T) {
@@ -48,7 +48,7 @@ func Test_AliClintReq(t *testing.T) {
 		t.Error("sign str error")
 	}
 	t.Log("sign str:" + str + "\n")
-	t.Log("signed base64:" + signStr(str, cl0.sigPwd) + "\n")
+	t.Log("signed base64:" + signStr(str, cl0.signPassword) + "\n")
 
 }
 
