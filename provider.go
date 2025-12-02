@@ -109,7 +109,11 @@ func (p *Provider) getClient() error {
 func (p *Provider) getClientWithZone(zone string) error {
 	cred := NewCredentialInfo(p.AccKeyID, p.AccKeySecret, p.RegionID)
 	var err error
-	p.client, err = getClient(cred, zone)
+	if len(zone) == 0 {
+		p.client, err = getClient(cred)
+	} else {
+		p.client, err = getClient(cred, zone)
+	}
 	if err != nil {
 		return err
 	}
