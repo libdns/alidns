@@ -46,6 +46,13 @@ func getClient(cred *CredentialInfo, zone ...string) (*aliClient, error) {
 	return result, nil
 }
 
+func (c *aliClient) SetAction(action string) error {
+	if c.schema == nil {
+		return errors.New("schema was not initialed proprely")
+	}
+	return c.schema.SetAction(action)
+}
+
 func (c *aliClient) AddRequestBody(key string, value string) error {
 	if c.schema == nil {
 		return errors.New("schema was not initialed proprely")
@@ -69,7 +76,7 @@ func (c *aliClient) Unlock() {
 }
 
 func (c *aliClient) doAPIRequest(ctx context.Context, result interface{}, methods ...string) error {
-	method := "GET"
+	method := http.MethodPost
 	if len(methods) > 0 {
 		method = methods[0]
 	}

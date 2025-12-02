@@ -60,6 +60,15 @@ func (c *aliClientSchema) signReqV2(method string) error {
 	return nil
 }
 
+func (c *aliClientSchema) setActionV2(action string) error {
+	var err error
+	c.requestPairs, err = c.requestPairs.Update("Action", action)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (c *aliClientSchema) urlV2(src string) string {
 	si0 := fmt.Sprintf("%s=%s", "Signature", strings.ReplaceAll(c.signString, "+", "%2B"))
 	return fmt.Sprintf("%s&%s", src, si0)

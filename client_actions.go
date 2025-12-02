@@ -13,7 +13,7 @@ func (c *aliClient) queryDomainInfo(ctx context.Context, zone string) (aliDomain
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "DescribeDomains")
+	c.SetAction("DescribeDomains")
 	c.AddRequestBody("KeyWord", zone)
 	c.AddRequestBody("SearchMode", "EXACT")
 	rs := aliDomainResult{}
@@ -36,7 +36,7 @@ func (c *aliClient) addDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	if rc.TTL <= 0 {
 		rc.TTL = 600
 	}
-	c.AddRequestBody("Action", "AddDomainRecord")
+	c.SetAction("AddDomainRecord")
 	c.AddRequestBody("DomainName", rc.DomainName)
 	c.AddRequestBody("RR", rc.Rr)
 	c.AddRequestBody("Type", rc.DomainType)
@@ -57,7 +57,7 @@ func (c *aliClient) delDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "DeleteDomainRecord")
+	c.SetAction("DeleteDomainRecord")
 	c.AddRequestBody("RecordId", rc.RecordID)
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
@@ -77,7 +77,7 @@ func (c *aliClient) setDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	if rc.TTL <= 0 {
 		rc.TTL = 600
 	}
-	c.AddRequestBody("Action", "UpdateDomainRecord")
+	c.SetAction("UpdateDomainRecord")
 	c.AddRequestBody("RecordId", rc.RecordID)
 	c.AddRequestBody("RR", rc.Rr)
 	c.AddRequestBody("Type", rc.DomainType)
@@ -98,7 +98,7 @@ func (c *aliClient) getDomainRecord(ctx context.Context, recID string) (aliDomai
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "DescribeDomainRecordInfo")
+	c.SetAction("DescribeDomainRecordInfo")
 	c.AddRequestBody("RecordId", recID)
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
@@ -115,7 +115,7 @@ func (c *aliClient) queryDomainRecords(ctx context.Context, name string) ([]aliD
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "DescribeDomainRecords")
+	c.SetAction("DescribeDomainRecords")
 	c.AddRequestBody("DomainName", strings.Trim(name, "."))
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
@@ -131,7 +131,7 @@ func (c *aliClient) queryDomainRecord(ctx context.Context, rr, name string, recT
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "DescribeDomainRecords")
+	c.SetAction("DescribeDomainRecords")
 	c.AddRequestBody("DomainName", strings.Trim(name, "."))
 	c.AddRequestBody("RRKeyWord", rr)
 	if recType != "" {
@@ -159,7 +159,7 @@ func (c *aliClient) queryMainDomain(ctx context.Context, name string) (string, s
 	}
 	c.Lock()
 	defer c.Unlock()
-	c.AddRequestBody("Action", "GetMainDomainName")
+	c.SetAction("GetMainDomainName")
 	c.AddRequestBody("InputString", strings.Trim(name, "."))
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)

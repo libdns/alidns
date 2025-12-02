@@ -58,17 +58,19 @@ func NewCredentialInfo(accessKeyID, accessKeySecret, regionID string) *Credentia
 }
 
 func getClientSchema(cred *CredentialInfo, scheme string) (*aliClientSchema, error) {
-	return defaultSchemaV2(cred, scheme)
+	return defaultSchemaV3(cred, scheme)
 }
 
 func (c *aliClientSchema) signReq(method string) error {
 	if c.signPassword == "" || len(c.requestPairs) == 0 {
 		return errors.New("alidns: AccessKeySecret or Request(includes AccessKeyId) is Misssing")
 	}
-	if c.version == 2 {
+	switch c.version {
+	case 2:
 		return c.signReqV2(method)
+	default:
+		return c.signReqV3(method)
 	}
-	return nil
 }
 
 func (c *aliClientSchema) addReqBody(key string, value string) error {
@@ -85,7 +87,8 @@ func (c *aliClientSchema) addReqBody(key string, value string) error {
 
 func (c *aliClientSchema) setReqBody(key string, value string) error {
 	c.mutex.Lock()
-	err := c.requestPairs.Update(key, value)
+	var err error
+	c.requestPairs, err = c.requestPairs.Update(key, value)
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -99,6 +102,18 @@ func (c *aliClientSchema) reqMapToStr() string {
 	result := c.requestPairs.UrlEncodedString()
 	c.mutex.Unlock()
 	return result
+}
+
+func (c *aliClientSchema) SetAction(action string) error {
+	if len(action) == 0 {
+		return errors.New("empty action to set")
+	}
+	switch c.version {
+	case 2:
+		return c.setActionV2(action)
+	default:
+		return c.setActionV3(action)
+	}
 }
 
 // HttpRequest generates http.Request from schema
@@ -116,7 +131,6 @@ func (c *aliClientSchema) HttpRequest(cxt context.Context, method string) (*http
 	}
 	var bodyReader io.Reader
 	if method == http.MethodPost && c.version > 2 {
-		c.headerPairs.Append("content-type", "application/x-www-form-urlencoded")
 		bodyReader = bytes.NewReader([]byte(c.reqMapToStr()))
 	}
 	req, err := http.NewRequestWithContext(cxt, method, requestUrl, bodyReader)
@@ -153,8 +167,8 @@ func percentCode(src string) string {
 }
 
 func urlEncode(src string) string {
-	str0 := percentCode(src)
-	str0 = url.QueryEscape(str0)
+	str0 := url.QueryEscape(src)
+	str0 = percentCode(str0)
 	if goVer() > 1.20 {
 		str0 = strings.Replace(str0, "%26", "&", -1)
 	}
@@ -165,39 +179,78 @@ func urlEncode(src string) string {
 type KeyPairs []keyPair
 
 func (p KeyPairs) Append(key, value string) (KeyPairs, error) {
-	if key == "" && value == "" {
+	if key == "" || value == "" {
 		return p, errors.New("key or value is Empty")
 	}
 	srcEl := keyPair{Key: key, Value: value}
 	for _, el := range p {
 		if srcEl.Key == el.Key {
-			return p, errors.New("duplicate keys")
+			return p.Update(key, value)
 		}
 	}
 	p = append(p, srcEl)
 	return p, nil
 }
 
-func (p KeyPairs) Update(key, value string) error {
-	if key == "" && value == "" {
-		return errors.New("key or value is Empty")
+func (p KeyPairs) Update(key, value string) (KeyPairs, error) {
+	if key == "" || value == "" {
+		return p, errors.New("key or value is Empty")
 	}
 	srcEl := keyPair{Key: key, Value: value}
 	for in, el := range p {
 		if srcEl.Key == el.Key {
 			p[in] = srcEl
-			return nil
+			return p, nil
 		}
 	}
-	return fmt.Errorf("entry of %s not found", key)
+	return p.Append(key, value)
+}
+
+func (p KeyPairs) SplitToString(pair, pairs string) string {
+	result := ""
+	if len(pair) == 0 {
+		pair = ":"
+	}
+	if len(pairs) == 0 {
+		pairs = ","
+	}
+	for _, el := range p {
+		result += el.Key +
+			pair +
+			el.Value +
+			pairs
+	}
+	return strings.TrimSuffix(result, pairs)
+}
+
+func (p KeyPairs) PercentCodeString() string {
+	if len(p) == 0 {
+		return ""
+	}
+	var tmp KeyPairs
+	for _, v := range p {
+		tmp, _ = tmp.Append(urlEncode(v.Key), urlEncode(v.Value))
+	}
+	return tmp.SplitToString("=", "&")
 }
 
 func (p KeyPairs) UrlEncodedString() string {
-	urlEn := url.Values{}
-	for _, o := range p {
-		urlEn.Add(o.Key, o.Value)
+	if len(p) == 0 {
+		return ""
 	}
-	return urlEn.Encode()
+	tmp := url.Values{}
+	for _, el := range p {
+		tmp.Add(el.Key, el.Value)
+	}
+	return tmp.Encode()
+}
+
+func (p KeyPairs) Keys() []string {
+	result := make([]string, p.Len())
+	for index, el := range p {
+		result[index] = el.Key
+	}
+	return result
 }
 
 func (p KeyPairs) Len() int {

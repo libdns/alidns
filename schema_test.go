@@ -3,6 +3,7 @@ package alidns
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 )
 
@@ -50,6 +51,47 @@ func Test_SignV2(t *testing.T) {
 	t.Log("sign str:" + str + "\n")
 	t.Log("signed base64:" + signStrV2(str, cl0.signPassword) + "\n")
 
+}
+
+func Test_SignV3(t *testing.T) {
+	cr := CredentialInfo{
+		AccessKeyID:     "YourAccessKeyId",
+		AccessKeySecret: "YourAccessKeySecret",
+	}
+	schema, err := defaultSchemaV3(&cr, "http")
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
+	schema.APIHost = "http://ecs.cn-shanghai.aliyuncs.com/"
+	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-signature-nonce", "3156853299f313e23d1673dc12e1703d")
+	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-date", "2023-10-26T10:22:32Z")
+	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-version", "2014-05-26")
+	err = schema.setActionV3("RunInstances")
+	if err != nil {
+		t.Error(err)
+		t.Fail()
+	}
+	_ = schema.addReqBody("ImageId", "win2019_1809_x64_dtc_zh-cn_40G_alibase_20230811.vhd")
+	_ = schema.addReqBody("RegionId", "cn-shanghai")
+
+	const exceptedReq = `GET
+/
+ImageId=win2019_1809_x64_dtc_zh-cn_40G_alibase_20230811.vhd&RegionId=cn-shanghai
+host:ecs.cn-shanghai.aliyuncs.com
+x-acs-action:RunInstances
+x-acs-content-sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+x-acs-date:2023-10-26T10:22:32Z
+x-acs-signature-nonce:3156853299f313e23d1673dc12e1703d
+x-acs-version:2014-05-26
+
+host;x-acs-action;x-acs-content-sha256;x-acs-date;x-acs-signature-nonce;x-acs-version
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
+	if tmp := schema.requestToSignV3(http.MethodGet); tmp != exceptedReq {
+		t.Error("not excepted request")
+		fmt.Println(exceptedReq)
+		fmt.Print(tmp)
+	}
 }
 
 func Test_AppendDupReq(t *testing.T) {
