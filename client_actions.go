@@ -140,7 +140,7 @@ func (c *aliClient) queryDomainRecord(ctx context.Context, rr, name string, recT
 	if len(recVal) > 0 && recVal[0] != "" {
 		c.AddRequestBody("ValueKeyWord", recVal[0])
 	}
-	c.AddRequestBody("SearchMode", "ADVANCED")
+	c.AddRequestBody("SearchMode", "COMBINATION")
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	if err != nil {
