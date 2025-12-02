@@ -26,12 +26,16 @@ type aliDomainRecord struct {
 }
 
 func (r aliDomainRecord) RR() libdns.RR {
-	return libdns.RR{
+	result := libdns.RR{
 		Type: r.DomainType,
 		Name: r.Rr,
 		Data: r.DomainValue,
 		TTL:  time.Duration(r.TTL) * time.Second,
 	}
+	if r.Priority > 0 {
+		result.Data = fmt.Sprintf("%d %v", r.Priority, r.DomainValue)
+	}
+	return result
 }
 
 func (r aliDomainRecord) Equals(v aliDomainRecord) bool {
