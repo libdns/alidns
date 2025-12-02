@@ -15,8 +15,12 @@ import (
 type aliClient struct {
 	schema          *aliClientSchema
 	DomainName      string
-	InstanceEdition string
+	InstanceEdition InstanceEdition
 	mutex           sync.Mutex
+}
+
+func (c *aliClient) IsEntprienseEdition() bool {
+	return c.InstanceEdition.IsEntprienseEdition()
 }
 
 func getClient(cred *CredentialInfo, zone ...string) (*aliClient, error) {

@@ -119,13 +119,13 @@ func TestOpError(t *testing.T) {
 		},
 		{
 			memo:   "error with none error",
-			record: OpError("op",nil),
+			record: OpError("op", nil),
 			result: nil,
 		},
 	}
 
 	for _, c := range cases {
-		if (c.record != nil && c.result != nil )&& c.record.Error() != c.result.Error() {
+		if (c.record != nil && c.result != nil) && c.record.Error() != c.result.Error() {
 			t.Log("excepted:", c.result.Error(), "got:", c.record.Error())
 			t.Fail()
 			return
@@ -160,8 +160,58 @@ func TestOpErrors(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if (c.record != nil && c.result != nil )&& c.record.Error() != c.result.Error() {
+		if (c.record != nil && c.result != nil) && c.record.Error() != c.result.Error() {
 			t.Log("excepted:", c.result.Error(), "got:", c.record.Error())
+			t.Fail()
+			return
+		}
+		t.Log("case ", c.memo, "was pass.")
+	}
+}
+
+func TestInstanceEdition(t *testing.T) {
+	type testCase struct {
+		memo   string
+		record aliDomainInfo
+		result bool
+	}
+
+	cases := []testCase{
+		{
+			memo:   "version_enterprise_advanced is enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("version_enterprise_advanced")},
+			result: true,
+		},
+		{
+			memo:   "version_enterprise_basic is enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("version_enterprise_basic")},
+			result: true,
+		},
+		{
+			memo:   "enterprise_advanced is enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("enterprise_advanced")},
+			result: true,
+		},
+		{
+			memo:   "enterprise_basic is enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("enterprise_basic")},
+			result: true,
+		},
+		{
+			memo:   "personal is not enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("version_personal")},
+			result: false,
+		},
+		{
+			memo:   "mianfei is not enterprise edition",
+			record: aliDomainInfo{VersionCode: InstanceEdition("mianfei")},
+			result: false,
+		},
+	}
+
+	for _, c := range cases {
+		if c.record.VersionCode.IsEntprienseEdition() != c.result {
+			t.Log("excepted:", c.result, "got:", c.record.VersionCode.IsEntprienseEdition())
 			t.Fail()
 			return
 		}
