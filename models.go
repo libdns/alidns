@@ -50,9 +50,19 @@ type aliDomaRecords struct {
 	Record []aliDomainRecord `json:"Record,omitempty"`
 }
 
+type aliDomainInfo struct {
+	DomainName  string `json:"DomainName,omitempty"`
+	VersionCode string `json:"VersionCode,omitempty"`
+}
+
+type aliDomains struct {
+	Domain []aliDomainInfo `json:"Domain,omitempty"`
+}
+
 type aliDomainResult struct {
 	ReqID         string         `json:"RequestId,omitempty"`
 	DomainRecords aliDomaRecords `json:"DomainRecords,omitempty"`
+	Domains       aliDomains     `json:"Domains,omitempty"`
 	DomainLevel   int            `json:"DomainLevel,omitempty"`
 	DomainValue   string         `json:"Value,omitempty"`
 	DomainName    string         `json:"DomainName,omitempty"`

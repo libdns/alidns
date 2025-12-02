@@ -13,25 +13,33 @@ import (
 
 // aliClient is an abstration of AliClient
 type aliClient struct {
-	schema *aliClientSchema
-	mutex  sync.Mutex
+	schema          *aliClientSchema
+	DomainName      string
+	InstanceEdition string
+	mutex           sync.Mutex
 }
 
-// TODO:Will complete,If we need to get Domain Info for something.
-func (c *aliClient) getDomainInfo(ctx context.Context, zone string) error {
-	return nil
-}
-
-func (c *aliClient) getClientSchema(cred *CredentialInfo, zone string) error {
+func getClient(cred *CredentialInfo, zone ...string) (*aliClient, error) {
+	result := &aliClient{}
 	schema, err := getClientSchema(cred, "https")
 	if err != nil {
-		return err
+		return result, err
 	}
-	c.schema = schema
-	if zone != "" {
-		c.getDomainInfo(context.Background(), strings.Trim(zone, "."))
+	result.schema = schema
+	if len(zone) == 0 {
+		return result, nil
 	}
-	return nil
+	info, err := result.queryDomainInfo(context.Background(), strings.Trim(zone[0], "."))
+	if err != nil {
+		return result, err
+	}
+	if len(info.DomainName) > 0 {
+		result.DomainName = info.DomainName
+	}
+	if len(info.VersionCode) > 0 {
+		result.InstanceEdition = info.VersionCode
+	}
+	return result, nil
 }
 
 func (c *aliClient) AddRequestBody(key string, value string) error {
@@ -56,7 +64,11 @@ func (c *aliClient) Unlock() {
 	c.mutex.Unlock()
 }
 
-func (c *aliClient) DoAPIRequest(ctx context.Context, method string, result interface{}) error {
+func (c *aliClient) doAPIRequest(ctx context.Context, result interface{}, methods ...string) error {
+	method := "GET"
+	if len(methods) > 0 {
+		method = methods[0]
+	}
 	req, err := c.schema.HttpRequest(ctx, method)
 	if err != nil {
 		return err

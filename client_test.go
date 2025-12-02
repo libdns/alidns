@@ -11,7 +11,7 @@ func Test_ClientAPIReq(t *testing.T) {
 	p0.client.AddRequestBody("KeyWords", "vi")
 	var rs aliDomaRecords
 	rspData := aliDomainResult{}
-	err := p0.doAPIRequest(context.TODO(), &rspData)
+	err := p0.client.doAPIRequest(context.TODO(), &rspData)
 	t.Log("req", p0.client.schema, "data", rspData, "err:", err, "rs:", rs)
 }
 
