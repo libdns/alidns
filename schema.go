@@ -20,10 +20,14 @@ const addressOfAPI string = "%s://alidns.aliyuncs.com/"
 
 // CredentialInfo implements param of the crediential
 type CredentialInfo struct {
-	AccessKeyID     string `json:"access_key_id"`
+	// The API Key ID Required by Aliyun's for accessing the Aliyun's API
+	AccessKeyID string `json:"access_key_id"`
+	// The API Key Secret Required by Aliyun's for accessing the Aliyun's API
 	AccessKeySecret string `json:"access_key_secret"`
-	RegionID        string `json:"region_id,omitempty"`
-	SecurityToken   string `json:"security_token,omitempty"`
+	// Optional for identifing the region of the Aliyun's Service,The default is zh-hangzhou
+	RegionID string `json:"region_id,omitempty"`
+	// The Security Token Required If you enabled the Aliyun's STS(SecurityToken) for accessing the Aliyun's API
+	SecurityToken string `json:"security_token,omitempty"`
 }
 
 // aliClientSchema abstructs the alidns.Client

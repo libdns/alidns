@@ -102,8 +102,10 @@ func Test_AppendDupReq(t *testing.T) {
 }
 
 var p0 = Provider{
-	AccKeyID:     AccessKeyID,
-	AccKeySecret: AccessKeySecret,
+	CredentialInfo: CredentialInfo{
+		AccessKeyID:     AccessKeyID,
+		AccessKeySecret: AccessKeySecret,
+	},
 }
 
 func Test_RequestUrl(t *testing.T) {
