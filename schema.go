@@ -47,21 +47,13 @@ type keyPair struct {
 	Value string
 }
 
-func NewCredentialInfo(accessKeyID, accessKeySecret, regionID string) *CredentialInfo {
-	if accessKeyID == "" || accessKeySecret == "" {
-		return nil
-	}
-	if len(regionID) == 0 {
-		regionID = defaultRegionID
-	}
-	return &CredentialInfo{
-		AccessKeyID:     accessKeyID,
-		AccessKeySecret: accessKeySecret,
-		RegionID:        regionID,
-	}
-}
-
 func getClientSchema(cred *CredentialInfo, scheme string) (*aliClientSchema, error) {
+	if cred.AccessKeyID == "" || cred.AccessKeySecret == "" {
+		return nil, errors.New("empty AccessKeyID or AccessKeySecret")
+	}
+	if len(cred.RegionID) == 0 {
+		cred.RegionID = defaultRegionID
+	}
 	return defaultSchemaV3(cred, scheme)
 }
 
