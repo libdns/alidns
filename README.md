@@ -6,7 +6,7 @@ This package implements the [libdns interfaces](https://github.com/libdns/libdns
 
 The metadata of AliDNS API [here](https://api.aliyun.com/meta/v1/products/Alidns/versions/2015-01-09/api-docs.json).
 
-The document of request and signing processing are [v2](https://help.aliyun.com/zh/sdk/product-overview/rpc-mechanism) and [v3](https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature) (I'll upgrade the request and signing processing to v3 later.).
+The document of request and signing processing are [v2](https://help.aliyun.com/zh/sdk/product-overview/rpc-mechanism) and [v3](https://help.aliyun.com/zh/sdk/product-overview/v3-request-structure-and-signature) (Current schema version is already v3, v2 will be archived. ).
 
 ## Authenticating
 
