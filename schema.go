@@ -69,10 +69,10 @@ func (c *aliClientSchema) signReq(method string) error {
 	}
 }
 
-func (c *aliClientSchema) addReqBody(key string, value string) error {
+func (c *aliClientSchema) UpsertHeader(key string, value string) error {
 	c.mutex.Lock()
 	var err error
-	c.requestPairs, err = c.requestPairs.Append(key, value)
+	c.headerPairs, err = c.headerPairs.Upsert(key, value)
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -81,10 +81,10 @@ func (c *aliClientSchema) addReqBody(key string, value string) error {
 	return nil
 }
 
-func (c *aliClientSchema) setReqBody(key string, value string) error {
+func (c *aliClientSchema) UpsertRequestBody(key string, value string) error {
 	c.mutex.Lock()
 	var err error
-	c.requestPairs, err = c.requestPairs.Update(key, value)
+	c.requestPairs, err = c.requestPairs.Upsert(key, value)
 	if err != nil {
 		c.mutex.Unlock()
 		return err
@@ -174,32 +174,19 @@ func urlEncode(src string) string {
 
 type keyPairs []keyPair
 
-func (p keyPairs) Append(key, value string) (keyPairs, error) {
+func (p keyPairs) Upsert(key, value string) (keyPairs, error) {
 	if key == "" || value == "" {
 		return p, errors.New("key or value is Empty")
 	}
 	srcEl := keyPair{Key: key, Value: value}
-	for _, el := range p {
+	for i, el := range p {
 		if srcEl.Key == el.Key {
-			return p.Update(key, value)
+			p[i] = srcEl
+			return p, nil
 		}
 	}
 	p = append(p, srcEl)
 	return p, nil
-}
-
-func (p keyPairs) Update(key, value string) (keyPairs, error) {
-	if key == "" || value == "" {
-		return p, errors.New("key or value is Empty")
-	}
-	srcEl := keyPair{Key: key, Value: value}
-	for in, el := range p {
-		if srcEl.Key == el.Key {
-			p[in] = srcEl
-			return p, nil
-		}
-	}
-	return p.Append(key, value)
 }
 
 func (p keyPairs) SplitToString(pair, pairs string) string {
@@ -225,7 +212,7 @@ func (p keyPairs) PercentCodeString() string {
 	}
 	var tmp keyPairs
 	for _, v := range p {
-		tmp, _ = tmp.Append(urlEncode(v.Key), urlEncode(v.Value))
+		tmp, _ = tmp.Upsert(urlEncode(v.Key), urlEncode(v.Value))
 	}
 	return tmp.SplitToString("=", "&")
 }

@@ -64,16 +64,16 @@ func Test_SignV3(t *testing.T) {
 		t.Fail()
 	}
 	schema.APIHost = "http://ecs.cn-shanghai.aliyuncs.com/"
-	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-signature-nonce", "3156853299f313e23d1673dc12e1703d")
-	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-date", "2023-10-26T10:22:32Z")
-	schema.headerPairs, _ = schema.headerPairs.Update("x-acs-version", "2014-05-26")
+	schema.headerPairs, _ = schema.headerPairs.Upsert("x-acs-signature-nonce", "3156853299f313e23d1673dc12e1703d")
+	schema.headerPairs, _ = schema.headerPairs.Upsert("x-acs-date", "2023-10-26T10:22:32Z")
+	schema.headerPairs, _ = schema.headerPairs.Upsert("x-acs-version", "2014-05-26")
 	err = schema.setActionV3("RunInstances")
 	if err != nil {
 		t.Error(err)
 		t.Fail()
 	}
-	_ = schema.addReqBody("ImageId", "win2019_1809_x64_dtc_zh-cn_40G_alibase_20230811.vhd")
-	_ = schema.addReqBody("RegionId", "cn-shanghai")
+	_ = schema.UpsertRequestBody("ImageId", "win2019_1809_x64_dtc_zh-cn_40G_alibase_20230811.vhd")
+	_ = schema.UpsertRequestBody("RegionId", "cn-shanghai")
 
 	const exceptedReq = `GET
 /
@@ -95,7 +95,7 @@ e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`
 }
 
 func Test_AppendDupReq(t *testing.T) {
-	err := cl0.addReqBody("Version", "100")
+	err := cl0.UpsertRequestBody("Version", "100")
 	if err == nil {
 		t.Fail()
 	}
@@ -110,8 +110,8 @@ var p0 = Provider{
 
 func Test_RequestUrl(t *testing.T) {
 	p0.getClient()
-	p0.client.AddRequestBody("Action", "DescribeDomainRecords")
-	p0.client.AddRequestBody("DomainName", "viscrop.top")
+	p0.client.SetRequestBody("Action", "DescribeDomainRecords")
+	p0.client.SetRequestBody("DomainName", "viscrop.top")
 	p0.client.SetRequestBody("Timestamp", "2020-10-16T20:10:54Z")
 	r, err := p0.client.schema.HttpRequest(context.TODO(), "GET")
 	t.Log("url:", r.URL.String(), "err:", err)

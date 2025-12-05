@@ -7,8 +7,8 @@ import (
 
 func Test_ClientAPIReq(t *testing.T) {
 	p0.getClient()
-	p0.client.AddRequestBody("Action", "DescribeDomainRecords")
-	p0.client.AddRequestBody("KeyWords", "vi")
+	p0.client.SetRequestBody("Action", "DescribeDomainRecords")
+	p0.client.SetRequestBody("KeyWords", "vi")
 	var rs aliDomaRecords
 	rspData := aliDomainResult{}
 	err := p0.client.doAPIRequest(context.TODO(), &rspData)

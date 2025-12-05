@@ -35,7 +35,7 @@ func defaultSchemaV3(cred *CredentialInfo, scheme string) (*aliClientSchema, err
 		signPassword: cred.AccessKeySecret,
 	}
 	if len(cred.SecurityToken) > 0 {
-		result.headerPairs, _ = result.headerPairs.Append("x-acs-security-token", cred.SecurityToken)
+		_ = result.UpsertHeader("x-acs-security-token", cred.SecurityToken)
 	}
 	return result, nil
 }
@@ -54,8 +54,7 @@ func hashString(src string) string {
 }
 
 func (c *aliClientSchema) setActionV3(action string) error {
-	var err error
-	c.headerPairs, err = c.headerPairs.Update("x-acs-action", action)
+	err := c.UpsertHeader("x-acs-action", action)
 	if err != nil {
 		return err
 	}
@@ -64,13 +63,13 @@ func (c *aliClientSchema) setActionV3(action string) error {
 
 func (c *aliClientSchema) requestToSignV3(method string) string {
 	mUrl, _ := url.Parse(c.APIHost)
-	c.headerPairs, _ = c.headerPairs.Append("host", mUrl.Host)
+	_ = c.UpsertHeader("host", mUrl.Host)
 	hashedRequestBody := hashString("")
 	if method == http.MethodPost {
 		hashedRequestBody = hashString(c.requestPairs.UrlEncodedString())
-		c.headerPairs, _ = c.headerPairs.Append("content-type", "application/x-www-form-urlencoded")
+		_ = c.UpsertHeader("content-type", "application/x-www-form-urlencoded")
 	}
-	c.headerPairs, _ = c.headerPairs.Append("x-acs-content-sha256", hashedRequestBody)
+	_ = c.UpsertHeader("x-acs-content-sha256", hashedRequestBody)
 	var headersToSign keyPairs
 	for _, el := range c.headerPairs {
 		needToSign := strings.HasPrefix(el.Key, "x-acs-") ||
@@ -79,7 +78,7 @@ func (c *aliClientSchema) requestToSignV3(method string) string {
 		if !needToSign {
 			continue
 		}
-		headersToSign, _ = headersToSign.Append(el.Key, el.Value)
+		headersToSign, _ = headersToSign.Upsert(el.Key, el.Value)
 	}
 	headerKeysToSign := ""
 	sort.Sort(headersToSign)
@@ -107,6 +106,6 @@ func (c *aliClientSchema) signReqV3(method string) error {
 	requestString := c.requestToSignV3(method)
 	stringToSign := "ACS3-HMAC-SHA256" + "\n" + hashString(requestString)
 	c.signString += ",Signature=" + strings.ToLower(hmacStringV3(stringToSign, c.signPassword))
-	c.headerPairs, _ = c.headerPairs.Append("Authorization", c.signString)
+	_ = c.UpsertHeader("Authorization", c.signString)
 	return nil
 }

@@ -14,8 +14,8 @@ func (c *aliClient) queryDomainInfo(ctx context.Context, zone string) (aliDomain
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("DescribeDomains")
-	c.AddRequestBody("KeyWord", zone)
-	c.AddRequestBody("SearchMode", "EXACT")
+	c.SetRequestBody("KeyWord", zone)
+	c.SetRequestBody("SearchMode", "EXACT")
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -37,11 +37,11 @@ func (c *aliClient) addDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 		rc.TTL = 600
 	}
 	c.SetAction("AddDomainRecord")
-	c.AddRequestBody("DomainName", rc.DomainName)
-	c.AddRequestBody("RR", rc.Rr)
-	c.AddRequestBody("Type", rc.DomainType)
-	c.AddRequestBody("Value", rc.DomainValue)
-	c.AddRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	c.SetRequestBody("DomainName", rc.DomainName)
+	c.SetRequestBody("RR", rc.Rr)
+	c.SetRequestBody("Type", rc.DomainType)
+	c.SetRequestBody("Value", rc.DomainValue)
+	c.SetRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -58,7 +58,7 @@ func (c *aliClient) delDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("DeleteDomainRecord")
-	c.AddRequestBody("RecordId", rc.RecordID)
+	c.SetRequestBody("RecordId", rc.RecordID)
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -78,11 +78,11 @@ func (c *aliClient) setDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 		rc.TTL = 600
 	}
 	c.SetAction("UpdateDomainRecord")
-	c.AddRequestBody("RecordId", rc.RecordID)
-	c.AddRequestBody("RR", rc.Rr)
-	c.AddRequestBody("Type", rc.DomainType)
-	c.AddRequestBody("Value", rc.DomainValue)
-	c.AddRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	c.SetRequestBody("RecordId", rc.RecordID)
+	c.SetRequestBody("RR", rc.Rr)
+	c.SetRequestBody("Type", rc.DomainType)
+	c.SetRequestBody("Value", rc.DomainValue)
+	c.SetRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -99,7 +99,7 @@ func (c *aliClient) getDomainRecord(ctx context.Context, recID string) (aliDomai
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("DescribeDomainRecordInfo")
-	c.AddRequestBody("RecordId", recID)
+	c.SetRequestBody("RecordId", recID)
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	rec := rs.ToDomaRecord()
@@ -116,7 +116,7 @@ func (c *aliClient) queryDomainRecords(ctx context.Context, name string) ([]aliD
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("DescribeDomainRecords")
-	c.AddRequestBody("DomainName", strings.Trim(name, "."))
+	c.SetRequestBody("DomainName", strings.Trim(name, "."))
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -132,15 +132,15 @@ func (c *aliClient) queryDomainRecord(ctx context.Context, rr, name string, recT
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("DescribeDomainRecords")
-	c.AddRequestBody("DomainName", strings.Trim(name, "."))
-	c.AddRequestBody("RRKeyWord", rr)
+	c.SetRequestBody("DomainName", strings.Trim(name, "."))
+	c.SetRequestBody("RRKeyWord", rr)
 	if recType != "" {
-		c.AddRequestBody("TypeKeyWord", recType)
+		c.SetRequestBody("TypeKeyWord", recType)
 	}
 	if len(recVal) > 0 && recVal[0] != "" {
-		c.AddRequestBody("ValueKeyWord", recVal[0])
+		c.SetRequestBody("ValueKeyWord", recVal[0])
 	}
-	c.AddRequestBody("SearchMode", "COMBINATION")
+	c.SetRequestBody("SearchMode", "COMBINATION")
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	if err != nil {
@@ -160,7 +160,7 @@ func (c *aliClient) queryMainDomain(ctx context.Context, name string) (string, s
 	c.Lock()
 	defer c.Unlock()
 	c.SetAction("GetMainDomainName")
-	c.AddRequestBody("InputString", strings.Trim(name, "."))
+	c.SetRequestBody("InputString", strings.Trim(name, "."))
 	rs := aliDomainResult{}
 	err := c.doAPIRequest(ctx, &rs)
 	if err != nil {

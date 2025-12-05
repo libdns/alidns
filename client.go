@@ -54,18 +54,11 @@ func (c *aliClient) SetAction(action string) error {
 	return c.schema.SetAction(action)
 }
 
-func (c *aliClient) AddRequestBody(key string, value string) error {
-	if c.schema == nil {
-		return errors.New("schema was not initialed proprely")
-	}
-	return c.schema.addReqBody(key, value)
-}
-
 func (c *aliClient) SetRequestBody(key string, value string) error {
 	if c.schema == nil {
 		return errors.New("schema was not initialed proprely")
 	}
-	return c.schema.setReqBody(key, value)
+	return c.schema.UpsertRequestBody(key, value)
 }
 
 func (c *aliClient) Lock() {

@@ -61,8 +61,7 @@ func (c *aliClientSchema) signReqV2(method string) error {
 }
 
 func (c *aliClientSchema) setActionV2(action string) error {
-	var err error
-	c.requestPairs, err = c.requestPairs.Update("Action", action)
+	err := c.UpsertRequestBody("Action", action)
 	if err != nil {
 		return err
 	}
