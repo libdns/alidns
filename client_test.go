@@ -16,27 +16,17 @@ func Test_ClientAPIReq(t *testing.T) {
 }
 
 func Test_QueryDomainRecord(t *testing.T) {
-	rr, name, err := p0.queryMainDomain(context.Background(), "aliyun.viscrop.ren")
-	if err != nil {
-		t.Log("err:", err)
-		t.Fail()
-	}
 	r0, err := p0.queryDomainRecord(context.TODO(), "*", "aliyun.viscropst.ren", "A")
 	t.Log("result:", r0)
 	if err != nil {
 		t.Log("err:", err)
 		t.Fail()
 	}
-	r0, err = p0.queryDomainRecord(context.TODO(), rr, name, "A", ".")
 	t.Log("result with A rec:", r0, "err:", err)
 }
 
 func Test_QueryDomainRecords(t *testing.T) {
-	_, name, _ := p0.queryMainDomain(context.Background(), "me.viscrop.top")
-	r0, err := p0.queryDomainRecords(context.TODO(), name)
-	t.Log("result:", r0, "err:", err)
-	_, name, _ = p0.queryMainDomain(context.Background(), "me.viscraop.top")
-	r0, err = p0.queryDomainRecords(context.TODO(), name)
+	r0, err := p0.queryDomainRecords(context.TODO(), "me.viscrop.top")
 	t.Log("result:", r0, "err:", err)
 }
 

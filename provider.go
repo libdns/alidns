@@ -161,12 +161,6 @@ func (p *Provider) queryDomainRecord(ctx context.Context, rr, name string, recTy
 	return p.client.queryDomainRecord(ctx, rr, name, recType, recVal...)
 }
 
-// REVERSED:queryMainDomain rseserved for absolute names to name,zone
-func (p *Provider) queryMainDomain(ctx context.Context, name string) (string, string, error) {
-	p.getClient()
-	return p.client.queryMainDomain(ctx, name)
-}
-
 // Interface guards
 var (
 	_ libdns.RecordGetter   = (*Provider)(nil)

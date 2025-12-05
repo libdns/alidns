@@ -151,20 +151,3 @@ func (c *aliClient) queryDomainRecord(ctx context.Context, rr, name string, recT
 	}
 	return rs.DomainRecords.Record[0], err
 }
-
-// REVERSED:queryMainDomain rseserved for absolute names to name,zone
-func (c *aliClient) queryMainDomain(ctx context.Context, name string) (string, string, error) {
-	if c.schema == nil {
-		return "", "", errors.New("schema was not initialed proprely")
-	}
-	c.Lock()
-	defer c.Unlock()
-	c.SetAction("GetMainDomainName")
-	c.SetRequestBody("InputString", strings.Trim(name, "."))
-	rs := aliDomainResult{}
-	err := c.doAPIRequest(ctx, &rs)
-	if err != nil {
-		return "", "", err
-	}
-	return rs.Rr, rs.DomainName, err
-}
