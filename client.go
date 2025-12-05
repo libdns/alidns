@@ -33,7 +33,8 @@ func getClient(cred *CredentialInfo, zone ...string) (*aliClient, error) {
 	if len(zone) == 0 {
 		return result, nil
 	}
-	info, err := result.queryDomainInfo(context.Background(), strings.Trim(zone[0], "."))
+	tmp, _ := getClient(cred)
+	info, err := tmp.queryDomainInfo(context.Background(), strings.Trim(zone[0], "."))
 	if err != nil {
 		return result, err
 	}
