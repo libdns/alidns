@@ -85,12 +85,12 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 			} else {
 				ar.RecordID = r0.RecordID
 			}
-		} else {
-			_, err := p.setDomainRecord(ctx, ar)
-			if err != nil {
-				errs.JoinRecord(rec, err)
-				continue
-			}
+		}
+		_, err := p.setDomainRecord(ctx, ar)
+		if err != nil {
+			errs.JoinRecord(rec, err)
+			continue
+		}
 		rls = append(rls, ar.DomainRecord())
 	}
 	return rls, errs.Error()
