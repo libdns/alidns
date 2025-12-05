@@ -179,32 +179,32 @@ func TestInstanceEdition(t *testing.T) {
 	cases := []testCase{
 		{
 			memo:   "version_enterprise_advanced is enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("version_enterprise_advanced")},
+			record: aliDomainInfo{VersionCode: instanceEdition("version_enterprise_advanced")},
 			result: true,
 		},
 		{
 			memo:   "version_enterprise_basic is enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("version_enterprise_basic")},
+			record: aliDomainInfo{VersionCode: instanceEdition("version_enterprise_basic")},
 			result: true,
 		},
 		{
 			memo:   "enterprise_advanced is enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("enterprise_advanced")},
+			record: aliDomainInfo{VersionCode: instanceEdition("enterprise_advanced")},
 			result: true,
 		},
 		{
 			memo:   "enterprise_basic is enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("enterprise_basic")},
+			record: aliDomainInfo{VersionCode: instanceEdition("enterprise_basic")},
 			result: true,
 		},
 		{
 			memo:   "personal is not enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("version_personal")},
+			record: aliDomainInfo{VersionCode: instanceEdition("version_personal")},
 			result: false,
 		},
 		{
 			memo:   "mianfei is not enterprise edition",
-			record: aliDomainInfo{VersionCode: InstanceEdition("mianfei")},
+			record: aliDomainInfo{VersionCode: instanceEdition("mianfei")},
 			result: false,
 		},
 	}

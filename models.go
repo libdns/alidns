@@ -70,9 +70,9 @@ type aliDomaRecords struct {
 	Record []aliDomainRecord `json:"Record,omitempty"`
 }
 
-type InstanceEdition string
+type instanceEdition string
 
-func (e InstanceEdition) IsEntprienseEdition() bool {
+func (e instanceEdition) IsEntprienseEdition() bool {
 	result := e == EditionEnterpriseAdvanced
 	result = result || VersionPrefix+e == EditionEnterpriseAdvanced
 	result = result || e == EditionEnterpriseBasic
@@ -82,15 +82,15 @@ func (e InstanceEdition) IsEntprienseEdition() bool {
 
 const (
 	VersionPrefix             = "version_"
-	EditionEnterpriseAdvanced = InstanceEdition(VersionPrefix + "enterprise_advanced")
-	EditionEnterpriseBasic    = InstanceEdition(VersionPrefix + "enterprise_basic")
-	EditionPersonal           = InstanceEdition(VersionPrefix + "personal")
-	EditionFree               = InstanceEdition("mianfei")
+	EditionEnterpriseAdvanced = instanceEdition(VersionPrefix + "enterprise_advanced")
+	EditionEnterpriseBasic    = instanceEdition(VersionPrefix + "enterprise_basic")
+	EditionPersonal           = instanceEdition(VersionPrefix + "personal")
+	EditionFree               = instanceEdition("mianfei")
 )
 
 type aliDomainInfo struct {
 	DomainName  string          `json:"DomainName,omitempty"`
-	VersionCode InstanceEdition `json:"VersionCode,omitempty"`
+	VersionCode instanceEdition `json:"VersionCode,omitempty"`
 }
 
 type aliDomains struct {

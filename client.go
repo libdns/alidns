@@ -15,7 +15,7 @@ import (
 type aliClient struct {
 	schema          *aliClientSchema
 	DomainName      string
-	InstanceEdition InstanceEdition
+	InstanceEdition instanceEdition
 	mutex           sync.Mutex
 }
 
