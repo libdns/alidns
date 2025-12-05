@@ -37,7 +37,8 @@ func main() {
         }
 
         for _, record := range records {
-                fmt.Printf("%s %v %s %s\n", record.Name, record.TTL.Seconds(), record.Type, record.Value)
+                tmp := record.RR()
+                fmt.Printf("%s %v %s %s\n", tmp.Name, tmp.TTL.Seconds(), tmp.Type, tmp.Value)
         }
 }
 ```
