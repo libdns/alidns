@@ -53,7 +53,7 @@ func (c *aliClientSchema) reqStrToSignV2(src string, method string) string {
 }
 
 func (c *aliClientSchema) signReqV2(method string) error {
-	sort.Sort(KeyPairs(c.requestPairs))
+	sort.Sort(keyPairs(c.requestPairs))
 	str := c.reqMapToStr()
 	str = c.reqStrToSignV2(str, method)
 	c.signString = signStrV2(str, c.signPassword)

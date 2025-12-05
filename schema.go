@@ -34,8 +34,8 @@ type CredentialInfo struct {
 type aliClientSchema struct {
 	mutex        sync.Mutex
 	APIHost      string
-	headerPairs  KeyPairs
-	requestPairs KeyPairs
+	headerPairs  keyPairs
+	requestPairs keyPairs
 	signString   string
 	signPassword string
 	version      int
@@ -180,9 +180,9 @@ func urlEncode(src string) string {
 	return str0
 }
 
-type KeyPairs []keyPair
+type keyPairs []keyPair
 
-func (p KeyPairs) Append(key, value string) (KeyPairs, error) {
+func (p keyPairs) Append(key, value string) (keyPairs, error) {
 	if key == "" || value == "" {
 		return p, errors.New("key or value is Empty")
 	}
@@ -196,7 +196,7 @@ func (p KeyPairs) Append(key, value string) (KeyPairs, error) {
 	return p, nil
 }
 
-func (p KeyPairs) Update(key, value string) (KeyPairs, error) {
+func (p keyPairs) Update(key, value string) (keyPairs, error) {
 	if key == "" || value == "" {
 		return p, errors.New("key or value is Empty")
 	}
@@ -210,7 +210,7 @@ func (p KeyPairs) Update(key, value string) (KeyPairs, error) {
 	return p.Append(key, value)
 }
 
-func (p KeyPairs) SplitToString(pair, pairs string) string {
+func (p keyPairs) SplitToString(pair, pairs string) string {
 	result := ""
 	if len(pair) == 0 {
 		pair = ":"
@@ -227,18 +227,18 @@ func (p KeyPairs) SplitToString(pair, pairs string) string {
 	return strings.TrimSuffix(result, pairs)
 }
 
-func (p KeyPairs) PercentCodeString() string {
+func (p keyPairs) PercentCodeString() string {
 	if len(p) == 0 {
 		return ""
 	}
-	var tmp KeyPairs
+	var tmp keyPairs
 	for _, v := range p {
 		tmp, _ = tmp.Append(urlEncode(v.Key), urlEncode(v.Value))
 	}
 	return tmp.SplitToString("=", "&")
 }
 
-func (p KeyPairs) UrlEncodedString() string {
+func (p keyPairs) UrlEncodedString() string {
 	if len(p) == 0 {
 		return ""
 	}
@@ -249,7 +249,7 @@ func (p KeyPairs) UrlEncodedString() string {
 	return tmp.Encode()
 }
 
-func (p KeyPairs) Keys() []string {
+func (p keyPairs) Keys() []string {
 	result := make([]string, p.Len())
 	for index, el := range p {
 		result[index] = el.Key
@@ -257,14 +257,14 @@ func (p KeyPairs) Keys() []string {
 	return result
 }
 
-func (p KeyPairs) Len() int {
+func (p keyPairs) Len() int {
 	return len(p)
 }
 
-func (p KeyPairs) Swap(i, j int) {
+func (p keyPairs) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-func (p KeyPairs) Less(i, j int) bool {
+func (p keyPairs) Less(i, j int) bool {
 	return p[i].Key < p[j].Key
 }

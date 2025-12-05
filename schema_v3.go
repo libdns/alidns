@@ -71,7 +71,7 @@ func (c *aliClientSchema) requestToSignV3(method string) string {
 		c.headerPairs, _ = c.headerPairs.Append("content-type", "application/x-www-form-urlencoded")
 	}
 	c.headerPairs, _ = c.headerPairs.Append("x-acs-content-sha256", hashedRequestBody)
-	var headersToSign KeyPairs
+	var headersToSign keyPairs
 	for _, el := range c.headerPairs {
 		needToSign := strings.HasPrefix(el.Key, "x-acs-") ||
 			el.Key == "content-type" ||
