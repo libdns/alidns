@@ -11,6 +11,28 @@ import (
 
 type ttl_t = uint32
 
+type DomainRecord struct {
+	Type     string
+	Name     string
+	Value    string
+	TTL      ttl_t
+	Priority ttl_t
+	ID       string
+}
+
+func (r DomainRecord) RR() libdns.RR {
+	result := libdns.RR{
+		Type: r.Type,
+		Name: r.Name,
+		Data: r.Value,
+		TTL:  time.Duration(r.TTL) * time.Second,
+	}
+	if r.Priority > 0 {
+		result.Data = fmt.Sprintf("%d %v", r.Priority, r.Value)
+	}
+	return result
+}
+
 type aliDomainRecord struct {
 	Rr          string `json:"RR,omitempty"`
 	Line        string `json:"Line,omitempty"`
@@ -25,17 +47,15 @@ type aliDomainRecord struct {
 	Priority    ttl_t  `json:"Priority,omitempty"`
 }
 
-func (r aliDomainRecord) RR() libdns.RR {
-	result := libdns.RR{
-		Type: r.DomainType,
-		Name: r.Rr,
-		Data: r.DomainValue,
-		TTL:  time.Duration(r.TTL) * time.Second,
+func (r aliDomainRecord) DomainRecord() DomainRecord {
+	return DomainRecord{
+		Type:     r.DomainType,
+		Name:     r.Rr,
+		Value:    r.DomainValue,
+		TTL:      r.TTL,
+		Priority: r.Priority,
+		ID:       r.RecordID,
 	}
-	if r.Priority > 0 {
-		result.Data = fmt.Sprintf("%d %v", r.Priority, r.DomainValue)
-	}
-	return result
 }
 
 func (r aliDomainRecord) Equals(v aliDomainRecord) bool {
@@ -139,6 +159,9 @@ func alidnsRecord(r libdns.Record, zone ...string) aliDomainRecord {
 	if svcb, svcbok := r.(libdns.ServiceBinding); svcbok {
 		result.Priority = ttl_t(svcb.Priority)
 		result.DomainValue = fmt.Sprintf("%s %s", svcb.Target, svcb.Params)
+	}
+	if rec, ok := r.(DomainRecord); ok {
+		result.RecordID = rec.ID
 	}
 	return result
 }

@@ -24,7 +24,7 @@ func (p *Provider) AppendRecords(ctx context.Context, zone string, recs []libdns
 			continue
 		}
 		ar.RecordID = rid
-		rls = append(rls, ar)
+		rls = append(rls, ar.DomainRecord())
 	}
 	return rls, errs.Error()
 }
@@ -49,7 +49,7 @@ func (p *Provider) DeleteRecords(ctx context.Context, zone string, recs []libdns
 			errs.JoinRecord(rec, err)
 			continue
 		}
-		rls = append(rls, ar)
+		rls = append(rls, ar.DomainRecord())
 	}
 	return rls, errs.Error()
 }
@@ -62,7 +62,7 @@ func (p *Provider) GetRecords(ctx context.Context, zone string) ([]libdns.Record
 		return nil, OpError("GetRecords", err)
 	}
 	for _, rec := range recs {
-		rls = append(rls, rec)
+		rls = append(rls, rec.DomainRecord())
 	}
 	return rls, nil
 }
@@ -91,8 +91,7 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 				errs.JoinRecord(rec, err)
 				continue
 			}
-		}
-		rls = append(rls, ar)
+		rls = append(rls, ar.DomainRecord())
 	}
 	return rls, errs.Error()
 }

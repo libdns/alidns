@@ -8,13 +8,14 @@ import (
 	"time"
 
 	al "github.com/libdns/alidns"
-	l "github.com/libdns/libdns"
+	"github.com/libdns/libdns"
 )
 
 func main() {
-	accKeyID := strings.TrimSpace(os.Getenv("ACCESS_KEY_ID"))
-	accKeySec := strings.TrimSpace(os.Getenv("ACCESS_KEY_SECRET"))
-	if (accKeyID == "") || (accKeySec == "") {
+	accessKeyID := strings.TrimSpace(os.Getenv("ACCESS_KEY_ID"))
+	accessKeySec := strings.TrimSpace(os.Getenv("ACCESS_KEY_SECRET"))
+	
+	if (accessKeyID == "") || (accessKeySec == "") {
 		fmt.Printf("ERROR: %s\n", "ACCESS_KEY_ID or ACCESS_KEY_SECRET missing")
 		return
 	}
@@ -28,35 +29,36 @@ func main() {
 		return
 	}
 
-	fmt.Printf("Get ACCESS_KEY_ID: %s,ACCESS_KEY_SECRET: %s,ZONE: %s\n", accKeyID, accKeySec, zone)
-	provider := al.Provider{
-		AccKeyID:     accKeyID,
-		AccKeySecret: accKeySec,
-	}
+	fmt.Printf("Get ACCESS_KEY_ID: %s,ACCESS_KEY_SECRET: %s,ZONE: %s\n", accessKeyID, accessKeySec, zone)
+	provider := al.Provider{}
+	provider.AccessKeyID = accessKeyID
+	provider.AccessKeySecret = accessKeySec
 	records, err := provider.GetRecords(context.TODO(), zone)
 	if err != nil {
 		fmt.Printf("ERROR: %s\n", err.Error())
 		return
 	}
-	testName := "_libdns_test"
 	testID := ""
+	testName := "_libdns_test"
 	for _, record := range records {
-		fmt.Printf("%s (.%s): %s, %s\n", record.Name, zone, record.Value, record.Type)
-		if testName == record.Name {
-			testID = record.ID
+		tmp := record.RR()
+		fmt.Printf("%s (.%s): %s, %s\n", tmp.Name, zone, tmp.Data, tmp.Type)
+		if testName == tmp.Name {
+			r, _ := record.(al.DomainRecord)
+			testID = r.ID
 		}
 	}
-
 	if testID == "" {
 		fmt.Println("Creating new entry for ", testName)
-		records, err = provider.AppendRecords(context.TODO(), zone, []l.Record{l.Record{
+		records, err = provider.AppendRecords(context.TODO(), zone, []libdns.Record{al.DomainRecord{
 			Type:  "TXT",
 			Name:  testName,
 			Value: fmt.Sprintf("This+is a test entry created by libdns %s", time.Now()),
-			TTL:   time.Duration(600) * time.Second,
+			TTL:   600,
 		}})
 		if len(records) == 1 {
-			testID = records[0].ID
+			tmp, _ := records[0].(al.DomainRecord)
+			testID = tmp.ID
 		}
 		if err != nil {
 			fmt.Printf("ERROR: %s\n", err.Error())
@@ -68,11 +70,11 @@ func main() {
 	fmt.Scanln()
 	if testID != "" {
 		fmt.Println("Replacing entry for ", testName)
-		records, err = provider.SetRecords(context.TODO(), zone, []l.Record{l.Record{
+		records, err = provider.SetRecords(context.TODO(), zone, []libdns.Record{al.DomainRecord{
 			Type:  "TXT",
 			Name:  testName,
-			Value: fmt.Sprintf("Replacement test entry created by libdns %s", time.Now()),
-			TTL:   time.Duration(605) * time.Second,
+			Value: fmt.Sprintf("Replacement test entry upgraded by libdns %s", time.Now()),
+			TTL:   605,
 			ID:    testID,
 		}})
 		if err != nil {
