@@ -210,8 +210,8 @@ func TestInstanceEdition(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		if c.record.VersionCode.IsEntprienseEdition() != c.result {
-			t.Log("excepted:", c.result, "got:", c.record.VersionCode.IsEntprienseEdition())
+		if c.record.VersionCode.IsEnterpriseEdition() != c.result {
+			t.Log("excepted:", c.result, "got:", c.record.VersionCode.IsEnterpriseEdition())
 			t.Fail()
 			return
 		}

@@ -20,7 +20,7 @@ type aliClient struct {
 }
 
 func (c *aliClient) IsEntprienseEdition() bool {
-	return c.InstanceEdition.IsEntprienseEdition()
+	return c.InstanceEdition.IsEnterpriseEdition()
 }
 
 func getClient(cred *CredentialInfo, zone ...string) (*aliClient, error) {

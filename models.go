@@ -72,7 +72,7 @@ type aliDomaRecords struct {
 
 type instanceEdition string
 
-func (e instanceEdition) IsEntprienseEdition() bool {
+func (e instanceEdition) IsEnterpriseEdition() bool {
 	result := e == EditionEnterpriseAdvanced
 	result = result || VersionPrefix+e == EditionEnterpriseAdvanced
 	result = result || e == EditionEnterpriseBasic
