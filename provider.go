@@ -75,9 +75,9 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 	for _, rec := range recs {
 		ar := alidnsRecord(rec, zone)
 		if ar.RecordID == "" {
-			r0, err := p.client.queryDomainRecord(ctx, ar.Rr, ar.DomainName, ar.DomainType, ar.DomainValue)
+			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DomainName, ar.DomainType, ar.DomainValue)
 			if err != nil {
-				ar.RecordID, err = p.client.addDomainRecord(ctx, ar)
+				ar.RecordID, err = p.addDomainRecord(ctx, ar)
 				if err != nil {
 					errs.JoinRecord(rec, err)
 					continue
