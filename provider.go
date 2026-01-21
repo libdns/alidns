@@ -76,14 +76,25 @@ func (p *Provider) SetRecords(ctx context.Context, zone string, recs []libdns.Re
 		ar := alidnsRecord(rec, zone)
 		if ar.RecordID == "" {
 			r0, err := p.queryDomainRecord(ctx, ar.Rr, ar.DomainName, ar.DomainType, ar.DomainValue)
-			if err != nil {
-				ar.RecordID, err = p.addDomainRecord(ctx, ar)
+			if err == nil {
+				ar.RecordID = r0.RecordID
+			}
+			if ar.Rr == r0.Rr && len(ar.RecordID) > 0 {
+				_, err := p.delDomainRecord(ctx, ar)
 				if err != nil {
 					errs.JoinRecord(rec, err)
 					continue
 				}
-			} else {
-				ar.RecordID = r0.RecordID
+				ar.RecordID = ""
+			}
+			if len(ar.RecordID) == 0 {
+				ar.RecordID, err = p.addDomainRecord(ctx, ar)
+				if err != nil {
+					errs.JoinRecord(rec, err)
+				} else {
+					rls = append(rls, ar.DomainRecord())
+				}
+				continue
 			}
 		}
 		_, err := p.setDomainRecord(ctx, ar)

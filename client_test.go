@@ -3,6 +3,8 @@ package alidns
 import (
 	"context"
 	"testing"
+
+	"github.com/libdns/libdns"
 )
 
 func Test_ClientAPIReq(t *testing.T) {
@@ -26,8 +28,11 @@ func Test_QueryDomainRecord(t *testing.T) {
 }
 
 func Test_QueryDomainRecords(t *testing.T) {
-	r0, err := p0.queryDomainRecords(context.TODO(), "me.viscrop.top")
+	r0, err := p0.queryDomainRecords(context.TODO(), "微明或鱼.中国")
 	t.Log("result:", r0, "err:", err)
+
+	recs, err := p0.GetRecords(context.TODO(),"微明或鱼.中国")
+	t.Log("result:", recs, "err:", err)
 }
 
 func Test_DomainRecordOp(t *testing.T) {
@@ -47,4 +52,14 @@ func Test_DomainRecordOp(t *testing.T) {
 	t.Log("result:", r0, "err:", err)
 	r0, err = p0.delDomainRecord(context.TODO(), dr0)
 	t.Log("result:", r0, "err:", err)
+}
+
+func Test_SetDomainRecords(t *testing.T) {
+
+	recs, err := p0.SetRecords(context.TODO(),"微明或鱼.中国",
+	[]libdns.Record{libdns.TXT{
+		Name: "你猜我是不是",
+		Text: "I don't knows 23",
+	}})
+	t.Log("result:", recs, "err:", err)
 }
