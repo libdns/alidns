@@ -11,6 +11,20 @@ import (
 
 type ttl_t = uint32
 
+func min(src, min ttl_t) ttl_t {
+	if src < min {
+		return min
+	}
+	return src
+}
+
+func max(src, max ttl_t) ttl_t {
+	if src > max {
+		return max
+	}
+	return src
+}
+
 type DomainRecord struct {
 	Type     string
 	Name     string

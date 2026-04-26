@@ -129,8 +129,8 @@ func (p *Provider) addDomainRecord(ctx context.Context, rc aliDomainRecord) (rec
 	if err != nil {
 		return "", err
 	}
-	if !p.client.IsEntprienseEdition() && rc.TTL < 600 {
-		rc.TTL = 600
+	if !p.client.IsEntprienseEdition() {
+		rc.TTL = min(rc.TTL, 600)
 	}
 	return p.client.addDomainRecord(ctx, rc)
 }
@@ -140,8 +140,8 @@ func (p *Provider) delDomainRecord(ctx context.Context, rc aliDomainRecord) (rec
 	if err != nil {
 		return "", err
 	}
-	if !p.client.IsEntprienseEdition() && rc.TTL < 600 {
-		rc.TTL = 600
+	if !p.client.IsEntprienseEdition() {
+		rc.TTL = min(rc.TTL, 600)
 	}
 	return p.client.delDomainRecord(ctx, rc)
 }
@@ -151,8 +151,8 @@ func (p *Provider) setDomainRecord(ctx context.Context, rc aliDomainRecord) (rec
 	if err != nil {
 		return "", err
 	}
-	if !p.client.IsEntprienseEdition() && rc.TTL < 600 {
-		rc.TTL = 600
+	if !p.client.IsEntprienseEdition() {
+		rc.TTL = min(rc.TTL, 600)
 	}
 	return p.client.setDomainRecord(ctx, rc)
 }

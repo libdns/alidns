@@ -42,6 +42,9 @@ func (c *aliClient) addDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	c.SetRequestBody("Type", rc.DomainType)
 	c.SetRequestBody("Value", rc.DomainValue)
 	c.SetRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	if rc.Priority > 0 {
+		c.SetRequestBody("Priority", fmt.Sprintf("%d", max(rc.Priority, 50)))
+	}
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
@@ -83,6 +86,9 @@ func (c *aliClient) setDomainRecord(ctx context.Context, rc aliDomainRecord) (re
 	c.SetRequestBody("Type", rc.DomainType)
 	c.SetRequestBody("Value", rc.DomainValue)
 	c.SetRequestBody("TTL", fmt.Sprintf("%d", rc.TTL))
+	if rc.Priority > 0 {
+		c.SetRequestBody("Priority", fmt.Sprintf("%d", max(rc.Priority, 50)))
+	}
 	rs := aliDomainResult{}
 	err = c.doAPIRequest(ctx, &rs)
 	recID = rs.RecID
