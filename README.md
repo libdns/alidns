@@ -10,7 +10,17 @@ The document of request and signing processing are [v2](https://help.aliyun.com/
 
 ## Authenticating
 
-To authenticate you need to supply our AccessKeyId and AccessKeySecret to the Provider.
+To authenticate you need to supply our AccessKeyID and AccessKeySecret or SecurityToken to the Provider.
+
+To authenticate with role permission you should allow following actions to use this normally.
+
+```
+DescribeDomains // this action is detecting your domain related alidns instance editon for completing the minimum TTL (600 for free edition,others is zero)
+AddDomainRecord
+DeleteDomainRecord
+UpdateDomainRecord
+DescribeDomainRecords
+```
 
 ## Example
 
